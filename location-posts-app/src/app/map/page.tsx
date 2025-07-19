@@ -1,8 +1,8 @@
 "use client"
 import { useSession } from "next-auth/react"
 import { useState, useEffect } from "react"
-import GoogleMap from "@/components/GoogleMap"
-import PostForm from "@/components/PostForm"
+import GoogleMap from "@/components/map/GoogleMap"
+// import PostForm from "@/components/PostForm" // TODO: Create PostForm component
 
 interface Post {
   id: string
