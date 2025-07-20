@@ -3,7 +3,7 @@ import { useSession } from "next-auth/react"
 import { useState, useEffect } from "react"
 import GoogleMap from "@/components/map/GoogleMap"
 import PhotoGameModal from "@/components/game/PhotoGameModel"
-// import PostForm from "@/components/PostForm" // TODO: Create PostForm component
+import PostCreat from "@/components/post/PostCreat"
 
 interface Post {
   id: string
@@ -52,34 +52,74 @@ export default function MapPage() {
     setShowPostForm(true)
   }
 
-  // const handlePostSubmit = async (postData: {
-  //   content?: string;
-  //   imageUrl?: string;
-  //   musicUrl?: string;
-  // }) => {
-  //   try {
-  //     const response = await fetch('/api/posts', {
-  //       method: 'POST',
-  //       headers: {
-  //         'Content-Type': 'application/json',
-  //       },
-  //       body: JSON.stringify({
-  //         ...postData,
-  //         latitude: selectedLocation?.lat,
-  //         longitude: selectedLocation?.lng,
-  //         address: selectedLocation?.address,
-  //       }),
-  //     })
+  const handlePostSubmit = async (postData: {
+    content: string;
+    imageFile: File | null;
+    imageUrl?: string;
+    location: { latitude: number; longitude: number; address?: string } | null;
+  }) => {
+    try {
+      let imageUrl = null;
       
-  //     if (response.ok) {
-  //       await fetchPosts()
-  //       setShowPostForm(false)
-  //       setSelectedLocation(null)
-  //     }
-  //   } catch (error) {
-  //     console.error('Failed to create post:', error)
-  //   }
-  // }
+      // 画像ファイルがある場合はアップロード
+      if (postData.imageFile) {
+        console.log('画像をアップロード中:', postData.imageFile.name);
+        
+        const formData = new FormData();
+        formData.append('file', postData.imageFile);
+        
+        const uploadResponse = await fetch('/api/upload', {
+          method: 'POST',
+          body: formData,
+        });
+        
+        if (uploadResponse.ok) {
+          const uploadResult = await uploadResponse.json();
+          imageUrl = uploadResult.url;
+          console.log('画像アップロード成功:', imageUrl);
+        } else {
+          console.error('画像アップロード失敗');
+          alert('画像のアップロードに失敗しました');
+          return;
+        }
+      }
+
+      // ユーザー認証確認
+      if (!session?.user?.email) {
+        alert('ユーザー情報が取得できません。再度ログインしてください。');
+        return;
+      }
+
+      const response = await fetch('/api/posts', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          content: postData.content,
+          imageUrl,
+          latitude: selectedLocation?.lat,
+          longitude: selectedLocation?.lng,
+          address: selectedLocation?.address,
+          authorId: session.user.email, // セッションからユーザーemailを取得（APIでユーザーIDに変換）
+        }),
+      })
+      
+      if (response.ok) {
+        await fetchPosts()
+        setShowPostForm(false)
+        setSelectedLocation(null)
+        console.log('投稿が正常に作成されました')
+      } else {
+        const errorText = await response.text()
+        console.error('Failed to create post:', errorText)
+        alert('投稿の作成に失敗しました: ' + errorText)
+      }
+    } catch (error) {
+      console.error('Failed to create post:', error)
+      alert('投稿の作成に失敗しました: ' + (error instanceof Error ? error.message : String(error)))
+    }
+  }
 
   const handleStartPhotoGame = (postId: string, imageUrl: string) => {
     setGameData({ postId, imageUrl })
@@ -110,25 +150,15 @@ export default function MapPage() {
       </div>
       
       {showPostForm && (
-        <div className="w-96 bg-white shadow-lg p-4">
-          <h2 className="text-xl font-bold mb-4">新しい投稿</h2>
-          <p className="text-gray-600 mb-4">
-            選択した位置: {selectedLocation?.address || `${selectedLocation?.lat.toFixed(4)}, ${selectedLocation?.lng.toFixed(4)}`}
-          </p>
-          <div className="space-y-2">
-            <button
-              onClick={() => {
-                setShowPostForm(false)
-                setSelectedLocation(null)
-              }}
-              className="w-full bg-gray-500 text-white px-4 py-2 rounded"
-            >
-              キャンセル
-            </button>
-            <p className="text-sm text-gray-500 text-center">
-              投稿機能は開発中です
-            </p>
-          </div>
+        <div className="w-96 bg-white shadow-lg overflow-y-auto max-h-full">
+          <PostCreat
+            onPostCreate={handlePostSubmit}
+            selectedLocation={selectedLocation}
+            onCancel={() => {
+              setShowPostForm(false)
+              setSelectedLocation(null)
+            }}
+          />
         </div>
       )}
 

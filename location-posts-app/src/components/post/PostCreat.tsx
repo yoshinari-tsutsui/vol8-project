@@ -20,26 +20,42 @@ interface PostCreatorProps {
   onPostCreate: (postData: PostData) => void;
   isCreating?: boolean;
   onCancel?: () => void;
+  selectedLocation?: {
+    lat: number;
+    lng: number;
+    address?: string;
+  } | null;
 }
 
 export default function PostCreator({
   onPostCreate,
   isCreating = false,
-  onCancel
+  onCancel,
+  selectedLocation
 }: PostCreatorProps) {
   // フォーム状態
   const [content, setContent] = useState('');
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
-  const [location, setLocation] = useState<Location | null>(null);
+  const [location, setLocation] = useState<Location | null>(
+    selectedLocation ? {
+      latitude: selectedLocation.lat,
+      longitude: selectedLocation.lng,
+      address: selectedLocation.address || `緯度: ${selectedLocation.lat.toFixed(4)}, 経度: ${selectedLocation.lng.toFixed(4)}`
+    } : null
+  );
   
   // UI状態
   const [isGettingLocation, setIsGettingLocation] = useState(false);
   const [isDragOver, setIsDragOver] = useState(false);
   const [errors, setErrors] = useState<{[key: string]: string}>({});
+  const [imageMode, setImageMode] = useState<'file' | 'camera'>('file');
+  const [stream, setStream] = useState<MediaStream | null>(null);
   
   // Refs
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
   const [manualLocation, setManualLocation] = useState({ latitude: '', longitude: '' });
 
   // バリデーション
@@ -89,6 +105,63 @@ export default function PostCreator({
     setImagePreview(null);
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
+    }
+    // カメラストリームを停止
+    if (stream) {
+      stream.getTracks().forEach(track => track.stop());
+      setStream(null);
+    }
+  };
+
+  // カメラ機能
+  const startCamera = async () => {
+    try {
+      const mediaStream = await navigator.mediaDevices.getUserMedia({ 
+        video: { facingMode: 'environment' } // 背面カメラを優先
+      });
+      setStream(mediaStream);
+      if (videoRef.current) {
+        videoRef.current.srcObject = mediaStream;
+      }
+    } catch (error) {
+      console.error('Camera access failed:', error);
+      setErrors((prev: {[key: string]: string}) => ({ 
+        ...prev, 
+        image: 'カメラへのアクセスに失敗しました。ブラウザの設定を確認してください。' 
+      }));
+    }
+  };
+
+  const capturePhoto = () => {
+    if (videoRef.current && canvasRef.current) {
+      const canvas = canvasRef.current;
+      const video = videoRef.current;
+      const context = canvas.getContext('2d')!;
+      
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      context.drawImage(video, 0, 0);
+      
+      // Canvas内容をBlobに変換してFileオブジェクト作成
+      canvas.toBlob((blob) => {
+        if (blob) {
+          const file = new File([blob], 'camera-photo.jpg', { type: 'image/jpeg' });
+          handleImageSelect(file);
+        }
+      }, 'image/jpeg', 0.8);
+      
+      // カメラを停止
+      if (stream) {
+        stream.getTracks().forEach(track => track.stop());
+        setStream(null);
+      }
+    }
+  };
+
+  const stopCamera = () => {
+    if (stream) {
+      stream.getTracks().forEach(track => track.stop());
+      setStream(null);
     }
   };
 
@@ -203,14 +276,28 @@ export default function PostCreator({
     setLocation(null);
     setManualLocation({ latitude: '', longitude: '' });
     setErrors({});
+    setImageMode('file');
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
+    }
+    // カメラストリームを停止
+    if (stream) {
+      stream.getTracks().forEach(track => track.stop());
+      setStream(null);
     }
   };
 
   return (
     <div className="max-w-2xl mx-auto bg-white rounded-lg shadow-md p-6">
       <h2 className="text-2xl font-bold text-gray-800 mb-6">新しい投稿を作成</h2>
+      
+      {selectedLocation && (
+        <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+          <p className="text-sm text-blue-800">
+            📍 選択した位置: {selectedLocation.address || `${selectedLocation.lat.toFixed(4)}, ${selectedLocation.lng.toFixed(4)}`}
+          </p>
+        </div>
+      )}
       
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* 投稿内容 */}
@@ -237,6 +324,48 @@ export default function PostCreator({
             画像 (オプション)
           </label>
           
+          <div className="mb-2 p-2 bg-green-50 border border-green-200 rounded-lg">
+            <p className="text-sm text-green-800">
+              📸 画像アップロード・カメラ撮影機能が利用可能です！ファイルサイズは5MB以下にしてください。
+            </p>
+          </div>
+
+          {/* モード選択ボタン */}
+          <div className="flex gap-2 mb-4">
+            <button
+              type="button"
+              onClick={() => {
+                setImageMode('file');
+                stopCamera();
+              }}
+              className={`flex-1 px-4 py-2 rounded-lg font-medium transition-colors ${
+                imageMode === 'file' 
+                  ? 'bg-blue-500 text-white' 
+                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+              }`}
+              disabled={isCreating}
+            >
+              📁 ファイル選択
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setImageMode('camera');
+                if (fileInputRef.current) {
+                  fileInputRef.current.value = '';
+                }
+              }}
+              className={`flex-1 px-4 py-2 rounded-lg font-medium transition-colors ${
+                imageMode === 'camera' 
+                  ? 'bg-blue-500 text-white' 
+                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+              }`}
+              disabled={isCreating}
+            >
+              📷 カメラ撮影
+            </button>
+          </div>
+          
           {imagePreview ? (
             <div className="relative inline-block">
               <Image 
@@ -256,25 +385,83 @@ export default function PostCreator({
               </button>
             </div>
           ) : (
-            <div
-              onDragOver={handleDragOver}
-              onDragLeave={handleDragLeave}
-              onDrop={handleDrop}
-              onClick={() => fileInputRef.current?.click()}
-              className={`
-                border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors
-                ${isDragOver ? 'border-blue-500 bg-blue-50' : 'border-gray-300 hover:border-gray-400'}
-                ${isCreating ? 'pointer-events-none opacity-50' : ''}
-              `}
-            >
-              <div className="text-gray-400 mb-4">
-                <svg className="mx-auto h-12 w-12" fill="none" stroke="currentColor" viewBox="0 0 48 48">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" />
-                </svg>
-              </div>
-              <p className="text-lg font-medium text-gray-700">画像をアップロード</p>
-              <p className="text-sm text-gray-500 mt-1">ドラッグ&ドロップまたはクリック</p>
-              <p className="text-xs text-gray-400 mt-2">JPEG, PNG, WebP, GIF (最大5MB)</p>
+            <div>
+              {imageMode === 'file' ? (
+                <div
+                  onDragOver={handleDragOver}
+                  onDragLeave={handleDragLeave}
+                  onDrop={handleDrop}
+                  onClick={() => fileInputRef.current?.click()}
+                  className={`
+                    border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors
+                    ${isDragOver ? 'border-blue-500 bg-blue-50' : 'border-gray-300 hover:border-gray-400'}
+                    ${isCreating ? 'pointer-events-none opacity-50' : ''}
+                  `}
+                >
+                  <div className="text-gray-400 mb-4">
+                    <svg className="mx-auto h-12 w-12" fill="none" stroke="currentColor" viewBox="0 0 48 48">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" />
+                    </svg>
+                  </div>
+                  <p className="text-lg font-medium text-gray-700">画像をアップロード</p>
+                  <p className="text-sm text-gray-500 mt-1">ドラッグ&ドロップまたはクリック</p>
+                  <p className="text-xs text-gray-400 mt-2">JPEG, PNG, WebP, GIF (最大5MB)</p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {/* カメラビュー */}
+                  <div className="relative">
+                    <video 
+                      ref={videoRef} 
+                      autoPlay 
+                      playsInline
+                      className="w-full h-64 object-cover rounded-lg bg-gray-200"
+                      style={{ display: stream ? 'block' : 'none' }}
+                    />
+                    {!stream && (
+                      <div className="w-full h-64 bg-gray-200 rounded-lg flex items-center justify-center">
+                        <div className="text-center text-gray-500">
+                          <div className="text-4xl mb-2">📷</div>
+                          <p>カメラを開始してください</p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                  
+                  {/* カメラ操作ボタン */}
+                  <div className="flex gap-2">
+                    {!stream ? (
+                      <button
+                        type="button"
+                        onClick={startCamera}
+                        className="flex-1 bg-green-500 text-white px-4 py-3 rounded-lg hover:bg-green-600 font-medium disabled:opacity-50"
+                        disabled={isCreating}
+                      >
+                        📷 カメラ開始
+                      </button>
+                    ) : (
+                      <>
+                        <button
+                          type="button"
+                          onClick={capturePhoto}
+                          className="flex-1 bg-blue-500 text-white px-4 py-3 rounded-lg hover:bg-blue-600 font-medium disabled:opacity-50"
+                          disabled={isCreating}
+                        >
+                          📸 撮影
+                        </button>
+                        <button
+                          type="button"
+                          onClick={stopCamera}
+                          className="flex-1 bg-red-500 text-white px-4 py-3 rounded-lg hover:bg-red-600 font-medium disabled:opacity-50"
+                          disabled={isCreating}
+                        >
+                          🛑 停止
+                        </button>
+                      </>
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
           )}
           
@@ -403,6 +590,9 @@ export default function PostCreator({
           )}
         </div>
       </form>
+      
+      {/* 隠しcanvas要素（カメラ撮影用） */}
+      <canvas ref={canvasRef} style={{ display: 'none' }} />
     </div>
   );
 } 

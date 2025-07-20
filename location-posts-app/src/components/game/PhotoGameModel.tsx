@@ -71,6 +71,7 @@ export default function PhotoGameModal({
     try {
       const base64Data = capturedImage.split(',')[1] // data:image/jpeg;base64, を除去
       
+      console.log('Sending photo analysis request...');
       const response = await fetch('/api/photo-match', {
         method: 'POST',
         headers: {
@@ -82,11 +83,26 @@ export default function PhotoGameModal({
         }),
       })
 
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
       const result = await response.json()
       console.log('Analysis result:', result) // デバッグ用ログ
+      
+      if (result.error) {
+        throw new Error(result.error);
+      }
+      
       setAnalysisResult(result)
     } catch (error) {
       console.error('Analysis failed:', error)
+      // エラー時のフォールバック結果
+      setAnalysisResult({
+        similarity: 0,
+        confidence: 0,
+        description: `分析エラー: ${error instanceof Error ? error.message : 'Unknown error'}`
+      })
     } finally {
       setIsAnalyzing(false)
     }
@@ -260,13 +276,21 @@ export default function PhotoGameModal({
                 </span>
               </div>
               
-              {(analysisResult.similarity || 0) >= 80 ? (
+              {(analysisResult.similarity || 0) >= 90 ? (
                 <div className="text-green-600 font-bold text-lg">
-                  🎉 素晴らしい！80%以上の一致率です！
+                  🎉 完璧！90%以上の素晴らしい一致率です！
+                </div>
+              ) : (analysisResult.similarity || 0) >= 80 ? (
+                <div className="text-blue-600 font-bold text-lg">
+                  👏 とても良い！80%以上の高い一致率です！
+                </div>
+              ) : (analysisResult.similarity || 0) >= 60 ? (
+                <div className="text-yellow-600 font-bold">
+                  📸 まずまず！60%以上の一致率です。もう少し正確に撮影してみましょう。
                 </div>
               ) : (
-                <div className="text-orange-600">
-                  もう少し頑張りましょう！80%を目指しましょう。
+                <div className="text-red-600 font-bold">
+                  😅 残念！一致率が低いです。同じ場所・角度で撮影してみてください。
                 </div>
               )}
               

@@ -41,6 +41,23 @@ export async function POST(req: NextRequest) {
       )
     }
 
+    // authorIdがemailの場合はユーザーを検索してIDを取得
+    let userId = authorId;
+    if (authorId.includes('@')) {
+      const user = await prisma.user.findUnique({
+        where: { email: authorId },
+        select: { id: true }
+      });
+      
+      if (!user) {
+        return NextResponse.json(
+          { error: 'User not found' },
+          { status: 404 }
+        )
+      }
+      userId = user.id;
+    }
+
     const post = await prisma.post.create({
       data: {
         content,
@@ -49,7 +66,7 @@ export async function POST(req: NextRequest) {
         latitude: parseFloat(latitude),
         longitude: parseFloat(longitude),
         address,
-        authorId,
+        authorId: userId,
       },
       include: {
         author: {
