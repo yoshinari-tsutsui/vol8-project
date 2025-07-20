@@ -22,6 +22,8 @@ export default function ProfilePage() {
     bio: '',
     avatarUrl: ''
   })
+  const [selectedFile, setSelectedFile] = useState<File | null>(null)
+  const [uploading, setUploading] = useState(false)
 
   useEffect(() => {
     fetchUserProfile()
@@ -53,23 +55,98 @@ export default function ProfilePage() {
     }
   }
 
+  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (file && file.type.startsWith('image/')) {
+      setSelectedFile(file)
+      
+      // プレビュー用にFileReaderを使用
+      const reader = new FileReader()
+      reader.onload = (e) => {
+        setEditForm({
+          ...editForm,
+          avatarUrl: e.target?.result as string
+        })
+      }
+      reader.readAsDataURL(file)
+    }
+  }
+
+  const uploadImage = async (file: File): Promise<string> => {
+    const formData = new FormData()
+    formData.append('avatar', file)
+    formData.append('userId', userId)
+
+    const response = await fetch('/api/upload/avatar', {
+      method: 'POST',
+      body: formData,
+    })
+
+    if (!response.ok) {
+      throw new Error('画像のアップロードに失敗しました')
+    }
+
+    const result = await response.json()
+    return result.url
+  }
+
+  const handleDeletePost = async (postId: string) => {
+    if (!confirm('この投稿を削除しますか？')) {
+      return
+    }
+
+    try {
+      const response = await fetch(`/api/posts/${postId}`, {
+        method: 'DELETE',
+      })
+
+      if (response.ok) {
+        // 投稿リストから削除
+        setPosts(prevPosts => prevPosts.filter(post => post.id !== postId))
+        // ユーザー情報を再取得して投稿数を更新
+        fetchUserProfile()
+      } else {
+        const error = await response.json()
+        alert(error.error || '投稿の削除に失敗しました')
+      }
+    } catch (error) {
+      console.error('Error deleting post:', error)
+      alert('投稿の削除中にエラーが発生しました')
+    }
+  }
+
   const handleEditProfile = async () => {
     try {
+      setUploading(true)
+      let avatarUrl = editForm.avatarUrl
+
+      // 新しいファイルが選択されている場合はアップロード
+      if (selectedFile) {
+        avatarUrl = await uploadImage(selectedFile)
+      }
+
       const response = await fetch(`/api/users/${userId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(editForm),
+        body: JSON.stringify({
+          ...editForm,
+          avatarUrl
+        }),
       })
 
       if (response.ok) {
         const updatedUser = await response.json()
         setUser(updatedUser)
         setIsEditing(false)
+        setSelectedFile(null)
       }
     } catch (error) {
       console.error('Error updating profile:', error)
+      alert('プロフィールの更新に失敗しました')
+    } finally {
+      setUploading(false)
     }
   }
 
@@ -129,22 +206,40 @@ export default function ProfilePage() {
                   rows={3}
                   className="w-full p-2 border rounded-md resize-none"
                 />
-                <input
-                  type="url"
-                  value={editForm.avatarUrl}
-                  onChange={(e) => setEditForm({...editForm, avatarUrl: e.target.value})}
-                  placeholder="アバター画像URL"
-                  className="w-full p-2 border rounded-md"
-                />
+                <div className="space-y-2">
+                  <label className="block text-sm font-medium text-gray-700">
+                    アバター画像
+                  </label>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleFileSelect}
+                    className="w-full p-2 border rounded-md text-sm"
+                  />
+                  {selectedFile && (
+                    <div className="text-sm text-green-600">
+                      選択されたファイル: {selectedFile.name}
+                    </div>
+                  )}
+                </div>
                 <div className="flex space-x-2">
                   <button
                     onClick={handleEditProfile}
-                    className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
+                    disabled={uploading}
+                    className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    保存
+                    {uploading ? 'アップロード中...' : '保存'}
                   </button>
                   <button
-                    onClick={() => setIsEditing(false)}
+                    onClick={() => {
+                      setIsEditing(false)
+                      setSelectedFile(null)
+                      setEditForm({
+                        displayName: user?.displayName || '',
+                        bio: user?.bio || '',
+                        avatarUrl: user?.avatarUrl || ''
+                      })
+                    }}
                     className="px-4 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600"
                   >
                     キャンセル
@@ -197,7 +292,7 @@ export default function ProfilePage() {
                 {user.bio && <p className="text-gray-800 mb-4">{user.bio}</p>}
 
                 <div className="flex space-x-6 text-sm text-gray-600">
-                  <span><strong>{user._count?.posts || 0}</strong> 投稿</span>
+                  <span><strong>{posts.length}</strong> 投稿</span>
                   <span><strong>{user._count?.followers || 0}</strong> フォロワー</span>
                   <span><strong>{user._count?.following || 0}</strong> フォロー中</span>
                 </div>
@@ -249,7 +344,16 @@ export default function ProfilePage() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {posts.length > 0 ? (
                 posts.map((post) => (
-                  <div key={post.id} className="bg-gray-50 rounded-lg p-4">
+                  <div key={post.id} className="bg-gray-50 rounded-lg p-4 relative">
+                    {currentUserId === userId && (
+                      <button
+                        onClick={() => handleDeletePost(post.id)}
+                        className="absolute top-2 right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600 transition-colors"
+                        title="投稿を削除"
+                      >
+                        ×
+                      </button>
+                    )}
                     {post.imageUrl && (
                       <Image
                         src={post.imageUrl}
