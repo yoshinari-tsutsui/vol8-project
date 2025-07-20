@@ -26,13 +26,7 @@ export default function Navigation() {
               href="/profile/user1" 
               className="text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium"
             >
-              プロフィール
-            </Link>
-            <Link 
-              href="/blocks" 
-              className="text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium"
-            >
-              ブロック
+              マイプロフィール
             </Link>
           </div>
         </div>

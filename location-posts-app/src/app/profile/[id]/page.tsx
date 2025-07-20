@@ -6,6 +6,7 @@ import Image from 'next/image'
 import { User, Post } from '@/types'
 import FollowButton from '@/components/FollowButton'
 import BlockButton from '@/components/BlockButton'
+import Link from 'next/link'
 
 export default function ProfilePage() {
   const params = useParams()
@@ -28,9 +29,13 @@ export default function ProfilePage() {
 
   const fetchUserProfile = async () => {
     try {
+      console.log('Fetching user profile for:', userId)
       const response = await fetch(`/api/users/${userId}`)
+      console.log('Response status:', response.status)
+      
       if (response.ok) {
         const userData = await response.json()
+        console.log('User data received:', userData)
         setUser(userData)
         setPosts(userData.posts || [])
         setEditForm({
@@ -38,6 +43,8 @@ export default function ProfilePage() {
           bio: userData.bio || '',
           avatarUrl: userData.avatarUrl || ''
         })
+      } else {
+        console.error('Failed to fetch user:', response.status, response.statusText)
       }
     } catch (error) {
       console.error('Error fetching user profile:', error)
@@ -150,12 +157,20 @@ export default function ProfilePage() {
                   <h1 className="text-2xl font-bold">{user.displayName || user.username}</h1>
                   <div className="flex space-x-2">
                     {currentUserId === userId ? (
-                      <button
-                        onClick={() => setIsEditing(true)}
-                        className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300"
-                      >
-                        プロフィール編集
-                      </button>
+                      <>
+                        <button
+                          onClick={() => setIsEditing(true)}
+                          className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300"
+                        >
+                          プロフィール編集
+                        </button>
+                        <Link
+                          href="/blocks"
+                          className="px-4 py-2 bg-red-100 text-red-700 rounded-md hover:bg-red-200 transition-colors"
+                        >
+                          ブロックリスト
+                        </Link>
+                      </>
                     ) : (
                       <>
                         <FollowButton
