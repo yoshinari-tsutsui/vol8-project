@@ -11,6 +11,10 @@ const nextConfig: NextConfig = {
     GEMINI_API_KEY: process.env.GEMINI_API_KEY,
     DATABASE_URL: process.env.DATABASE_URL,
   },
+  // HTTPS設定（開発環境）
+  // experimental: {
+  //   https: process.env.NODE_ENV === 'development',
+  // },
 };
 
 export default nextConfig;

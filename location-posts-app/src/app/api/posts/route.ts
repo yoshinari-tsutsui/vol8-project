@@ -34,6 +34,13 @@ export async function POST(req: NextRequest) {
     const body = await req.json()
     const { content, imageUrl, musicUrl, latitude, longitude, address, authorId } = body
 
+    if (!authorId) {
+      return NextResponse.json(
+        { error: 'Author ID is required' },
+        { status: 400 }
+      )
+    }
+
     const post = await prisma.post.create({
       data: {
         content,
@@ -60,7 +67,7 @@ export async function POST(req: NextRequest) {
   } catch (error) {
     console.error('Failed to create post:', error)
     return NextResponse.json(
-      { error: 'Failed to create post' },
+      { error: 'Failed to create post', details: error instanceof Error ? error.message : String(error) },
       { status: 500 }
     )
   }
