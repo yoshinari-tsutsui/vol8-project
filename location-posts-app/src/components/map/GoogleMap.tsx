@@ -2,6 +2,8 @@
 import { useEffect, useRef, useState } from 'react'
 import { Loader } from '@googlemaps/js-api-loader'
 
+/// <reference types="google.maps" />
+
 interface Post {
   id: string
   content?: string
@@ -19,12 +21,13 @@ interface Post {
 interface GoogleMapProps {
   posts: Post[]
   onLocationSelect: (lat: number, lng: number, address?: string) => void
+  onStartPhotoGame?: (postId: string, imageUrl: string) => void
 }
 
-export default function GoogleMap({ posts, onLocationSelect }: GoogleMapProps) {
+export default function GoogleMap({ posts, onLocationSelect, onStartPhotoGame }: GoogleMapProps) {
   const mapRef = useRef<HTMLDivElement>(null)
-  const [map, setMap] = useState<google.maps.Map | null>(null)
-  const [userLocation, setUserLocation] = useState<{lat: number, lng: number} | null>(null)
+  const [, setMap] = useState<google.maps.Map | null>(null)
+  const [, setUserLocation] = useState<{lat: number, lng: number} | null>(null)
 
   useEffect(() => {
     const initMap = async () => {
@@ -74,24 +77,68 @@ export default function GoogleMap({ posts, onLocationSelect }: GoogleMapProps) {
                 title: post.content || 'Post'
               })
 
-              // 投稿詳細のInfoWindow
+              // InfoWindowのコンテンツをDOM要素で作成
+              const infoWindowContent = document.createElement('div')
+              infoWindowContent.style.cssText = 'padding: 8px; max-width: 300px;'
+              
+              const authorDiv = document.createElement('div')
+              authorDiv.style.cssText = 'display: flex; align-items: center; margin-bottom: 8px;'
+              
+              const authorImg = document.createElement('img')
+              authorImg.src = post.author.image || '/default-avatar.png'
+              authorImg.alt = post.author.name
+              authorImg.style.cssText = 'width: 32px; height: 32px; border-radius: 50%; margin-right: 8px;'
+              
+              const authorName = document.createElement('span')
+              authorName.textContent = post.author.name
+              authorName.style.fontWeight = 'bold'
+              
+              authorDiv.appendChild(authorImg)
+              authorDiv.appendChild(authorName)
+              infoWindowContent.appendChild(authorDiv)
+
+              // 画像がある場合は表示
+              if (post.imageUrl) {
+                const postImg = document.createElement('img')
+                postImg.src = post.imageUrl
+                postImg.alt = 'Post image'
+                postImg.style.cssText = 'width: 100%; height: 150px; object-fit: cover; margin-bottom: 8px; border-radius: 8px;'
+                infoWindowContent.appendChild(postImg)
+              }
+
+              // コンテンツ表示
+              if (post.content) {
+                const contentP = document.createElement('p')
+                contentP.textContent = post.content
+                contentP.style.cssText = 'margin: 0 0 8px 0; font-size: 14px;'
+                infoWindowContent.appendChild(contentP)
+              }
+
+              // 音楽がある場合は表示
+              if (post.musicUrl) {
+                const audio = document.createElement('audio')
+                audio.controls = true
+                audio.style.cssText = 'width: 100%; margin-bottom: 8px;'
+                const source = document.createElement('source')
+                source.src = post.musicUrl
+                source.type = 'audio/mpeg'
+                audio.appendChild(source)
+                infoWindowContent.appendChild(audio)
+              }
+
+              // 写真ゲームボタン（画像がある場合のみ）
+              if (post.imageUrl && onStartPhotoGame) {
+                const gameButton = document.createElement('button')
+                gameButton.textContent = '写真ゲームに挑戦'
+                gameButton.style.cssText = 'background: #3b82f6; color: white; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-size: 14px;'
+                gameButton.addEventListener('click', () => {
+                  onStartPhotoGame(post.id, post.imageUrl!)
+                })
+                infoWindowContent.appendChild(gameButton)
+              }
+
               const infoWindow = new google.maps.InfoWindow({
-                content: `
-                  <div class="p-2">
-                    <div class="flex items-center mb-2">
-                      <img src="${post.author.image || '/default-avatar.png'}" 
-                           alt="${post.author.name}" 
-                           class="w-8 h-8 rounded-full mr-2">
-                      <span class="font-medium">${post.author.name}</span>
-                    </div>
-                    ${post.imageUrl ? `<img src="${post.imageUrl}" alt="Post image" class="w-48 h-32 object-cover mb-2 rounded">` : ''}
-                    ${post.content ? `<p class="mb-2">${post.content}</p>` : ''}
-                    ${post.musicUrl ? `<audio controls class="w-full"><source src="${post.musicUrl}" type="audio/mpeg"></audio>` : ''}
-                    <button onclick="startPhotoGame('${post.id}')" class="bg-blue-500 text-white px-3 py-1 rounded mt-2">
-                      写真ゲームに挑戦
-                    </button>
-                  </div>
-                `
+                content: infoWindowContent
               })
 
               marker.addListener('click', () => {
@@ -135,7 +182,7 @@ export default function GoogleMap({ posts, onLocationSelect }: GoogleMapProps) {
     if (mapRef.current) {
       initMap()
     }
-  }, [posts, onLocationSelect])
+  }, [posts, onLocationSelect, onStartPhotoGame])
 
   return (
     <div className="w-full h-full">
