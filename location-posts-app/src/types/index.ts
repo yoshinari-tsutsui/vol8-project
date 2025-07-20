@@ -7,6 +7,21 @@ export interface User {
   avatarUrl?: string
   createdAt: Date
   updatedAt: Date
+  posts?: Post[]
+  followers?: { follower: UserSummary }[]
+  following?: { following: UserSummary }[]
+  _count?: {
+    posts: number
+    followers: number
+    following: number
+  }
+}
+
+export interface UserSummary {
+  id: string
+  username: string
+  displayName?: string
+  avatarUrl?: string
 }
 
 export interface Post {
@@ -35,6 +50,8 @@ export interface Block {
   blockerId: string
   blockedId: string
   createdAt: Date
+  blocker?: UserSummary
+  blocked?: UserSummary
 }
 
 export interface Location {
