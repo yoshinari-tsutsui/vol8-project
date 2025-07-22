@@ -16,25 +16,6 @@ export default function Home() {
     return <div>Loading...</div>
   }
 
-  if (session) {
-    return (
-      <main className="flex min-h-screen flex-col items-center justify-center p-24">
-        <h1 className="text-4xl font-bold mb-8">Welcome, {session.user?.name}!</h1>
-        <button 
-          onClick={() => signOut()}
-          className="bg-red-500 text-white px-4 py-2 rounded"
-        >
-          Sign Out
-        </button>
-        <a 
-          href="/map" 
-          className="bg-blue-500 text-white px-4 py-2 rounded mt-4"
-        >
-          Go to Map
-        </a>
-      </main>
-    )
-  }
 
   return (
     <div className="max-w-4xl mx-auto p-6">
@@ -46,34 +27,13 @@ export default function Home() {
           写真と音楽を投稿して地図上で共有するアプリ
         </p>
         
-        {!session ? (
+        {!session && (
           <button 
             onClick={handleSignIn}
             className="bg-blue-500 text-white px-6 py-3 rounded-lg text-lg hover:bg-blue-600 transition-colors"
           >
             Sign in with Google
           </button>
-        ) : (
-          <div className="flex justify-center space-x-4">
-            <Link
-              href={`/profile/${(session.user as { id: string }).id}`}
-              className="px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
-            >
-              マイプロフィール
-            </Link>
-            <Link
-              href="/map"
-              className="px-6 py-3 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors"
-            >
-              地図
-            </Link>
-            <Link
-              href="/explore"
-              className="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
-            >
-              探索
-            </Link>
-          </div>
         )}
       </div>
 
@@ -108,15 +68,9 @@ export default function Home() {
         <div className="mt-8 bg-blue-50 rounded-lg p-6">
           <h3 className="text-lg font-semibold mb-4">ようこそ、{session?.user?.name}さん</h3>
           <div className="text-sm">
-            <p className="text-gray-600 mb-4">
+            <p className="text-gray-600">
               プロフィールページで投稿やフォロー・ブロック機能をお試しください
             </p>
-            <button 
-              onClick={() => signOut()}
-              className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 transition-colors"
-            >
-              Sign Out
-            </button>
           </div>
         </div>
       )}

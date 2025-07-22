@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { getServerSession } from 'next-auth/next'
+import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 
 export async function DELETE(
@@ -7,7 +9,24 @@ export async function DELETE(
 ) {
   try {
     const postId = params.id
-    const currentUserId = 'user1' // TODO: 実際の認証システムから取得
+    
+    // セッションからユーザー情報を取得
+    const session = await getServerSession(authOptions)
+    if (!session?.user?.email) {
+      return NextResponse.json({ error: 'ログインが必要です' }, { status: 401 })
+    }
+
+    // セッションのemailからユーザーIDを取得
+    const user = await prisma.user.findUnique({
+      where: { email: session.user.email },
+      select: { id: true }
+    })
+
+    if (!user) {
+      return NextResponse.json({ error: 'ユーザーが見つかりません' }, { status: 404 })
+    }
+
+    const currentUserId = user.id
 
     // 投稿が存在し、現在のユーザーの投稿であることを確認
     const post = await prisma.post.findUnique({

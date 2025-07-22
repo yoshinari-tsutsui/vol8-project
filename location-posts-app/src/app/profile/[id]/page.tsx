@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useParams } from 'next/navigation'
-import { useSession } from 'next-auth/react'
+import { useSession, signOut } from 'next-auth/react'
 import Image from 'next/image'
 import { User, Post } from '@/types'
 import FollowButton from '@/components/FollowButton'
@@ -189,6 +189,24 @@ export default function ProfilePage() {
 
   return (
     <div className="max-w-4xl mx-auto p-6">
+      {/* 上部ヘッダー */}
+      <div className="flex justify-between items-center mb-6">
+        <Link 
+          href="/"
+          className="text-gray-600 hover:text-gray-900 flex items-center text-sm"
+        >
+          ← ホームに戻る
+        </Link>
+        {currentUserId === userId && (
+          <button 
+            onClick={() => signOut({ callbackUrl: '/' })}
+            className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition-colors text-sm"
+          >
+            Sign Out
+          </button>
+        )}
+      </div>
+
       {/* プロフィールヘッダー */}
       <div className="bg-white rounded-lg shadow-md p-6 mb-6">
         <div className="flex items-start space-x-6">
