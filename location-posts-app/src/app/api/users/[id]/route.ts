@@ -6,6 +6,14 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
+    console.log('Fetching user with ID:', params.id);
+    
+    // すべてのユーザーをログ出力して確認
+    const allUsers = await prisma.user.findMany({
+      select: { id: true, email: true, username: true, displayName: true }
+    });
+    console.log('All users in database:', allUsers);
+    
     const user = await prisma.user.findUnique({
       where: { id: params.id },
       include: {

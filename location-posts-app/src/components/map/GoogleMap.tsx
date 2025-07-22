@@ -13,8 +13,10 @@ interface Post {
   longitude: number
   address?: string
   author: {
-    name: string
-    image?: string
+    id: string
+    username?: string
+    displayName?: string
+    avatarUrl?: string
   }
 }
 
@@ -123,12 +125,15 @@ export default function GoogleMap({ posts, onLocationSelect, onStartPhotoGame }:
               authorDiv.style.cssText = 'display: flex; align-items: center; margin-bottom: 8px;'
               
               const authorImg = document.createElement('img')
-              authorImg.src = post.author.image || '/default-avatar.png'
-              authorImg.alt = post.author.name
-              authorImg.style.cssText = 'width: 32px; height: 32px; border-radius: 50%; margin-right: 8px;'
+              authorImg.src = post.author.avatarUrl || 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=32&h=32&fit=crop&crop=face'
+              authorImg.alt = post.author.displayName || post.author.username || 'ユーザー'
+              authorImg.style.cssText = 'width: 32px; height: 32px; border-radius: 50%; margin-right: 8px; object-fit: cover;'
+              authorImg.onerror = () => {
+                authorImg.src = 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=32&h=32&fit=crop&crop=face'
+              }
               
               const authorName = document.createElement('span')
-              authorName.textContent = post.author.name
+              authorName.textContent = post.author.displayName || post.author.username || 'ユーザー'
               authorName.style.fontWeight = 'bold'
               
               authorDiv.appendChild(authorImg)
@@ -239,12 +244,15 @@ export default function GoogleMap({ posts, onLocationSelect, onStartPhotoGame }:
         authorDiv.style.cssText = 'display: flex; align-items: center; margin-bottom: 8px;'
         
         const authorImg = document.createElement('img')
-        authorImg.src = post.author.image || '/default-avatar.png'
-        authorImg.alt = post.author.name
-        authorImg.style.cssText = 'width: 32px; height: 32px; border-radius: 50%; margin-right: 8px;'
+        authorImg.src = post.author.avatarUrl || 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=32&h=32&fit=crop&crop=face'
+        authorImg.alt = post.author.displayName || post.author.username || 'ユーザー'
+        authorImg.style.cssText = 'width: 32px; height: 32px; border-radius: 50%; margin-right: 8px; object-fit: cover;'
+        authorImg.onerror = () => {
+          authorImg.src = 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=32&h=32&fit=crop&crop=face'
+        }
         
         const authorName = document.createElement('span')
-        authorName.textContent = post.author.name
+        authorName.textContent = post.author.displayName || post.author.username || 'ユーザー'
         authorName.style.fontWeight = 'bold'
         
         authorDiv.appendChild(authorImg)

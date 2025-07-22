@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useParams } from 'next/navigation'
+import { useSession } from 'next-auth/react'
 import Image from 'next/image'
 import { User, Post } from '@/types'
 import FollowButton from '@/components/FollowButton'
@@ -10,8 +11,9 @@ import Link from 'next/link'
 
 export default function ProfilePage() {
   const params = useParams()
+  const { data: session } = useSession()
   const userId = params.id as string
-  const currentUserId = 'user1' // TODO: 実際の認証システムから取得
+  const currentUserId = (session?.user as { id: string })?.id
   const [user, setUser] = useState<User | null>(null)
   const [posts, setPosts] = useState<Post[]>([])
   const [loading, setLoading] = useState(true)
@@ -31,7 +33,10 @@ export default function ProfilePage() {
 
   const fetchUserProfile = async () => {
     try {
+      console.log('Session data:', session)
+      console.log('Current user ID from session:', currentUserId)
       console.log('Fetching user profile for:', userId)
+      
       const response = await fetch(`/api/users/${userId}`)
       console.log('Response status:', response.status)
       
@@ -158,10 +163,26 @@ export default function ProfilePage() {
     )
   }
 
+  if (!session) {
+    return (
+      <div className="flex justify-center items-center min-h-screen">
+        <div className="text-lg">ログインが必要です</div>
+      </div>
+    )
+  }
+
   if (!user) {
     return (
       <div className="flex justify-center items-center min-h-screen">
-        <div className="text-lg">ユーザーが見つかりません</div>
+        <div className="text-lg">
+          ユーザーが見つかりません
+          <br />
+          <span className="text-sm text-gray-600">
+            ユーザーID: {userId}
+            <br />
+            セッションユーザーID: {currentUserId}
+          </span>
+        </div>
       </div>
     )
   }
@@ -183,7 +204,7 @@ export default function ProfilePage() {
             ) : (
               <div className="w-30 h-30 bg-gray-300 rounded-full flex items-center justify-center">
                 <span className="text-2xl text-gray-500">
-                  {(user.displayName || user.username).charAt(0).toUpperCase()}
+                  {(user.displayName || user.username || user.email || 'U').charAt(0).toUpperCase()}
                 </span>
               </div>
             )}
@@ -249,7 +270,7 @@ export default function ProfilePage() {
             ) : (
               <div>
                 <div className="flex items-center justify-between mb-2">
-                  <h1 className="text-2xl font-bold">{user.displayName || user.username}</h1>
+                  <h1 className="text-2xl font-bold">{user.displayName || user.username || user.email || 'ユーザー'}</h1>
                   <div className="flex space-x-2">
                     {currentUserId === userId ? (
                       <>
@@ -288,7 +309,7 @@ export default function ProfilePage() {
                     )}
                   </div>
                 </div>
-                <p className="text-gray-600 mb-2">@{user.username}</p>
+                <p className="text-gray-600 mb-2">@{user.username || user.email?.split('@')[0] || 'user'}</p>
                 {user.bio && <p className="text-gray-800 mb-4">{user.bio}</p>}
 
                 <div className="flex space-x-6 text-sm text-gray-600">
@@ -399,7 +420,7 @@ export default function ProfilePage() {
                       ) : (
                         <div className="w-10 h-10 bg-gray-300 rounded-full flex items-center justify-center">
                           <span className="text-sm text-gray-500">
-                            {(follow.follower.displayName || follow.follower.username).charAt(0).toUpperCase()}
+                            {(follow.follower.displayName || follow.follower.username || 'U').charAt(0).toUpperCase()}
                           </span>
                         </div>
                       )}
@@ -439,7 +460,7 @@ export default function ProfilePage() {
                       ) : (
                         <div className="w-10 h-10 bg-gray-300 rounded-full flex items-center justify-center">
                           <span className="text-sm text-gray-500">
-                            {(follow.following.displayName || follow.following.username).charAt(0).toUpperCase()}
+                            {(follow.following.displayName || follow.following.username || 'U').charAt(0).toUpperCase()}
                           </span>
                         </div>
                       )}

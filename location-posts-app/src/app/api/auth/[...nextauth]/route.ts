@@ -23,6 +23,27 @@ const handler = NextAuth({
       }
       return session;
     },
+    async signIn({ user, account, profile }) {
+      console.log('SignIn callback:', { user, account, profile });
+      return true;
+    },
+  },
+  events: {
+    async createUser({ user }) {
+      console.log('User created:', user);
+      if (user.email) {
+        const username = user.email.split('@')[0];
+        await prisma.user.update({
+          where: { id: user.id },
+          data: {
+            username: username,
+            displayName: user.name || username,
+            avatarUrl: user.image
+          }
+        });
+        console.log('User updated with additional info');
+      }
+    },
   },
   session: {
     strategy: "database",

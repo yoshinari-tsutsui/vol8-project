@@ -14,8 +14,10 @@ interface Post {
   longitude: number
   address?: string
   author: {
-    name: string
-    image?: string
+    id: string
+    username?: string
+    displayName?: string
+    avatarUrl?: string
   }
 }
 

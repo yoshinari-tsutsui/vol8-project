@@ -56,7 +56,7 @@ export default function Home() {
         ) : (
           <div className="flex justify-center space-x-4">
             <Link
-              href="/profile/user1"
+              href={`/profile/${(session.user as { id: string }).id}`}
               className="px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
             >
               マイプロフィール
