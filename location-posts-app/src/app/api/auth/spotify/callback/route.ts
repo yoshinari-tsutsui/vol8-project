@@ -9,13 +9,13 @@ export async function GET(request: NextRequest) {
   // エラーの場合
   if (error) {
     console.error('Spotify auth error:', error);
-    return NextResponse.redirect(`${baseUrl}/test-post?error=spotify_auth_failed`);
+    return NextResponse.redirect(`${baseUrl}/map?error=spotify_auth_failed`);
   }
 
   // 認証コードがない場合
   if (!code) {
     console.error('No authorization code received');
-    return NextResponse.redirect(`${baseUrl}/test-post?error=no_code`);
+    return NextResponse.redirect(`${baseUrl}/map?error=no_code`);
   }
 
   try {
@@ -48,10 +48,10 @@ export async function GET(request: NextRequest) {
 
     // 成功: アクセストークンをクエリパラメータとして返す
     // 実際のアプリではより安全な方法を使用すべきですが、デモ用としてシンプルに実装
-    return NextResponse.redirect(`${baseUrl}/test-post?spotify_token=${accessToken}&success=spotify_connected`);
+    return NextResponse.redirect(`${baseUrl}/map?spotify_token=${accessToken}&success=spotify_connected`);
 
   } catch (error) {
     console.error('Token exchange error:', error);
-    return NextResponse.redirect(`${baseUrl}/test-post?error=token_exchange_failed`);
+    return NextResponse.redirect(`${baseUrl}/map?error=token_exchange_failed`);
   }
 } 

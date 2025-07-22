@@ -1,7 +1,14 @@
 "use client";
 
-import React, { useState, useCallback, useRef } from 'react';
+import React, { useState, useCallback, useRef, useEffect } from 'react';
 import Image from 'next/image';
+import MusicSearch from '@/components/music/MusicSearch';
+import { 
+  isSpotifyAuthenticated, 
+  initializeSpotifyApi, 
+  checkSpotifyConfig,
+  SpotifyTrackInfo 
+} from '@/lib/spotify';
 
 interface Location {
   latitude: number;
@@ -13,6 +20,8 @@ interface PostData {
   content: string;
   imageFile: File | null;
   imageUrl?: string;
+  musicUrl?: string;
+  musicInfo?: SpotifyTrackInfo;
   location: Location | null;
 }
 
@@ -37,6 +46,7 @@ export default function PostCreator({
   const [content, setContent] = useState('');
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [selectedMusic, setSelectedMusic] = useState<SpotifyTrackInfo | null>(null);
   const [location, setLocation] = useState<Location | null>(
     selectedLocation ? {
       latitude: selectedLocation.lat,
@@ -52,11 +62,39 @@ export default function PostCreator({
   const [imageMode, setImageMode] = useState<'file' | 'camera'>('file');
   const [stream, setStream] = useState<MediaStream | null>(null);
   
+  // Spotify状態
+  const [isSpotifyConnected, setIsSpotifyConnected] = useState(false);
+  const [isConnectingSpotify, setIsConnectingSpotify] = useState(false);
+  const [showMusicSearch, setShowMusicSearch] = useState(false);
+  const [spotifyConfigured, setSpotifyConfigured] = useState(false);
+  
   // Refs
   const fileInputRef = useRef<HTMLInputElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [manualLocation, setManualLocation] = useState({ latitude: '', longitude: '' });
+
+  // Spotify初期化
+  useEffect(() => {
+    const initSpotify = () => {
+      setSpotifyConfigured(checkSpotifyConfig());
+      if (checkSpotifyConfig()) {
+        initializeSpotifyApi();
+        setIsSpotifyConnected(isSpotifyAuthenticated());
+      }
+    };
+
+    initSpotify();
+    
+    // トークンが変更された場合のリスナー
+    const checkAuthStatus = () => {
+      setIsSpotifyConnected(isSpotifyAuthenticated());
+    };
+
+    // 定期的に認証状態をチェック
+    const interval = setInterval(checkAuthStatus, 1000);
+    return () => clearInterval(interval);
+  }, []);
 
   // バリデーション
   const validateForm = (): boolean => {
@@ -251,6 +289,52 @@ export default function PostCreator({
     setErrors((prev: {[key: string]: string}) => ({ ...prev, location: '' }));
   };
 
+  // Spotify関連ハンドラー
+  const handleSpotifyLogin = () => {
+    if (!spotifyConfigured) {
+      setErrors((prev: {[key: string]: string}) => ({ 
+        ...prev, 
+        spotify: 'Spotify設定が不完全です。環境変数を確認してください。' 
+      }));
+      return;
+    }
+
+    setIsConnectingSpotify(true);
+    
+    // Spotifyログインページを新しいウィンドウで開く
+    const authWindow = window.open(
+      '/api/auth/spotify/login',
+      'spotify-auth',
+      'width=600,height=700,scrollbars=yes,resizable=yes'
+    );
+
+    // ウィンドウが閉じられたかをチェック
+    const checkClosed = setInterval(() => {
+      if (authWindow?.closed) {
+        clearInterval(checkClosed);
+        setIsConnectingSpotify(false);
+        // 認証状態を再チェック
+        setTimeout(() => {
+          setIsSpotifyConnected(isSpotifyAuthenticated());
+        }, 1000);
+      }
+    }, 1000);
+  };
+
+  const handleMusicSelect = (track: SpotifyTrackInfo) => {
+    setSelectedMusic(track);
+    setShowMusicSearch(false);
+    setErrors((prev: {[key: string]: string}) => ({ ...prev, spotify: '' }));
+  };
+
+  const handleMusicRemove = () => {
+    setSelectedMusic(null);
+  };
+
+  const toggleMusicSearch = () => {
+    setShowMusicSearch(!showMusicSearch);
+  };
+
   // フォーム送信
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -262,6 +346,8 @@ export default function PostCreator({
     const postData: PostData = {
       content: content.trim(),
       imageFile: selectedImage,
+      musicUrl: selectedMusic?.external_urls?.spotify,
+      musicInfo: selectedMusic || undefined,
       location
     };
 
@@ -273,6 +359,8 @@ export default function PostCreator({
     setContent('');
     setSelectedImage(null);
     setImagePreview(null);
+    setSelectedMusic(null);
+    setShowMusicSearch(false);
     setLocation(null);
     setManualLocation({ latitude: '', longitude: '' });
     setErrors({});
@@ -476,6 +564,103 @@ export default function PostCreator({
           
           {errors.image && (
             <p className="mt-1 text-sm text-red-600">{errors.image}</p>
+          )}
+        </div>
+
+        {/* 音楽 (Spotify) */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            音楽 (オプション)
+          </label>
+          
+          {!spotifyConfigured ? (
+            <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+              <p className="text-sm text-yellow-800">
+                🎵 Spotify機能を利用するには環境変数の設定が必要です
+              </p>
+            </div>
+          ) : !isSpotifyConnected ? (
+            <div className="space-y-3">
+              <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                <p className="text-sm text-blue-800">
+                  🎵 投稿に音楽を追加するには、Spotifyにログインしてください
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={handleSpotifyLogin}
+                disabled={isConnectingSpotify || isCreating}
+                className="w-full px-4 py-3 bg-green-500 text-white rounded-lg hover:bg-green-600 disabled:opacity-50 font-medium"
+              >
+                {isConnectingSpotify ? 'Spotifyに接続中...' : '🎵 Spotifyにログイン'}
+              </button>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {/* 選択された音楽の表示 */}
+              {selectedMusic ? (
+                <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-3">
+                      {selectedMusic.album.images?.[0] && (
+                        <Image
+                          src={selectedMusic.album.images[0].url}
+                          alt={selectedMusic.album.name}
+                          width={48}
+                          height={48}
+                          className="w-12 h-12 rounded object-cover"
+                        />
+                      )}
+                      <div>
+                        <p className="font-medium text-green-800">{selectedMusic.name}</p>
+                        <p className="text-sm text-green-700">
+                          {selectedMusic.artists.map(artist => artist.name).join(', ')}
+                        </p>
+                        <p className="text-xs text-green-600">{selectedMusic.album.name}</p>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={handleMusicRemove}
+                      disabled={isCreating}
+                      className="text-red-600 hover:text-red-800 text-sm font-medium disabled:opacity-50"
+                    >
+                      削除
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
+                    <p className="text-sm text-green-800">
+                      ✅ Spotify接続済み！楽曲を検索して投稿に追加できます
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={toggleMusicSearch}
+                    disabled={isCreating}
+                    className="w-full px-4 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 font-medium"
+                  >
+                    {showMusicSearch ? '🎵 検索を閉じる' : '🎵 楽曲を検索'}
+                  </button>
+                </div>
+              )}
+
+              {/* 音楽検索 */}
+              {showMusicSearch && !selectedMusic && (
+                <div className="border border-gray-300 rounded-lg p-4">
+                  <MusicSearch 
+                    onTrackSelect={handleMusicSelect}
+                    isDisabled={isCreating}
+                  />
+                </div>
+              )}
+            </div>
+          )}
+          
+          {errors.spotify && (
+            <p className="mt-1 text-sm text-red-600">{errors.spotify}</p>
           )}
         </div>
 

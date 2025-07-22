@@ -3,10 +3,11 @@ import { prisma } from '@/lib/prisma'
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    console.log('Fetching user with ID:', params.id);
+    const { id } = await params;
+    console.log('Fetching user with ID:', id);
     
     // すべてのユーザーをログ出力して確認
     const allUsers = await prisma.user.findMany({
@@ -15,7 +16,7 @@ export async function GET(
     console.log('All users in database:', allUsers);
     
     const user = await prisma.user.findUnique({
-      where: { id: params.id },
+      where: { id },
       include: {
         posts: {
           orderBy: { createdAt: 'desc' },

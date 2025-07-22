@@ -1,9 +1,11 @@
 "use client"
 import { useSession } from "next-auth/react"
 import { useState, useEffect } from "react"
+import { useSearchParams } from "next/navigation"
 import GoogleMap from "@/components/map/GoogleMap"
 import PhotoGameModal from "@/components/game/PhotoGameModel"
 import PostCreat from "@/components/post/PostCreat"
+import { setSpotifyAccessToken } from "@/lib/spotify"
 
 interface Post {
   id: string
@@ -23,6 +25,7 @@ interface Post {
 
 export default function MapPage() {
   const { data: session, status } = useSession()
+  const searchParams = useSearchParams()
   const [posts, setPosts] = useState<Post[]>([])
   const [selectedLocation, setSelectedLocation] = useState<{
     lat: number
@@ -32,6 +35,29 @@ export default function MapPage() {
   const [showPostForm, setShowPostForm] = useState(false)
   const [showPhotoGame, setShowPhotoGame] = useState(false)
   const [gameData, setGameData] = useState<{postId: string, imageUrl: string} | null>(null)
+
+  // Spotify認証成功時の処理
+  useEffect(() => {
+    const spotifyToken = searchParams.get('spotify_token')
+    const error = searchParams.get('error')
+    
+    if (spotifyToken) {
+      setSpotifyAccessToken(spotifyToken)
+      
+      // URLからパラメータを削除
+      const url = new URL(window.location.href)
+      url.searchParams.delete('spotify_token')
+      url.searchParams.delete('success')
+      window.history.replaceState({}, '', url.toString())
+    } else if (error) {
+      console.error('Spotify認証エラー:', error)
+      
+      // URLからエラーパラメータを削除
+      const url = new URL(window.location.href)
+      url.searchParams.delete('error')
+      window.history.replaceState({}, '', url.toString())
+    }
+  }, [searchParams])
 
   useEffect(() => {
     if (session) {
