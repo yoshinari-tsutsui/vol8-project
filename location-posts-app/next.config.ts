@@ -2,7 +2,7 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   images: {
-    domains: ['localhost', 'example.com', 'images.unsplash.com'],
+    domains: ['localhost', 'example.com', 'images.unsplash.com', 'lh3.googleusercontent.com'],
     dangerouslyAllowSVG: true,
     contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
   },

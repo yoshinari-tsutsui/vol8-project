@@ -208,20 +208,27 @@ export default function ProfilePage() {
       </div>
 
       {/* プロフィールヘッダー */}
-      <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-        <div className="flex items-start space-x-6">
-          <div className="relative">
+      <div className="relative bg-gradient-to-br from-blue-50 via-white to-purple-50 rounded-2xl shadow-xl p-8 mb-6 overflow-hidden">
+        {/* 背景装飾 */}
+        <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-blue-200/30 to-purple-200/30 rounded-full -translate-y-16 translate-x-16"></div>
+        <div className="absolute bottom-0 left-0 w-24 h-24 bg-gradient-to-tr from-pink-200/30 to-yellow-200/30 rounded-full translate-y-12 -translate-x-12"></div>
+        
+        <div className="relative flex items-start space-x-8">
+          <div className="relative group">
             {user.avatarUrl ? (
-              <Image
-                src={user.avatarUrl}
-                alt={user.displayName || user.username}
-                width={120}
-                height={120}
-                className="rounded-full object-cover"
-              />
+              <div className="relative">
+                <Image
+                  src={user.avatarUrl}
+                  alt={user.displayName || user.username}
+                  width={120}
+                  height={120}
+                  className="rounded-full object-cover shadow-lg ring-4 ring-white group-hover:shadow-xl transition-all duration-300 group-hover:scale-105"
+                />
+                <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-transparent via-white/10 to-white/30"></div>
+              </div>
             ) : (
-              <div className="w-30 h-30 bg-gray-300 rounded-full flex items-center justify-center">
-                <span className="text-2xl text-gray-500">
+              <div className="w-30 h-30 bg-gradient-to-br from-blue-400 to-purple-500 rounded-full flex items-center justify-center shadow-lg ring-4 ring-white group-hover:shadow-xl transition-all duration-300 group-hover:scale-105">
+                <span className="text-3xl text-white font-bold">
                   {(user.displayName || user.username || user.email || 'U').charAt(0).toUpperCase()}
                 </span>
               </div>
@@ -286,23 +293,28 @@ export default function ProfilePage() {
                 </div>
               </div>
             ) : (
-              <div>
-                <div className="flex items-center justify-between mb-2">
-                  <h1 className="text-2xl font-bold">{user.displayName || user.username || user.email || 'ユーザー'}</h1>
-                  <div className="flex space-x-2">
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="space-y-2">
+                    <h1 className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent">
+                      {user.displayName || user.username || user.email || 'ユーザー'}
+                    </h1>
+                    <p className="text-gray-500 text-lg">@{user.username || user.email?.split('@')[0] || 'user'}</p>
+                  </div>
+                  <div className="flex space-x-3">
                     {currentUserId === userId ? (
                       <>
                         <button
                           onClick={() => setIsEditing(true)}
-                          className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300"
+                          className="px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-xl hover:from-blue-600 hover:to-purple-700 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 active:scale-95"
                         >
-                          プロフィール編集
+                          ✏️ プロフィール編集
                         </button>
                         <Link
                           href="/blocks"
-                          className="px-4 py-2 bg-red-100 text-red-700 rounded-md hover:bg-red-200 transition-colors"
+                          className="px-6 py-3 bg-gradient-to-r from-red-500 to-pink-600 text-white rounded-xl hover:from-red-600 hover:to-pink-700 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 active:scale-95"
                         >
-                          ブロックリスト
+                          🚫 ブロックリスト
                         </Link>
                       </>
                     ) : (
@@ -311,7 +323,6 @@ export default function ProfilePage() {
                           targetUserId={userId}
                           currentUserId={currentUserId}
                           onFollowChange={() => {
-                            // フォロー状態が変わったらプロフィールを再取得
                             fetchUserProfile()
                           }}
                         />
@@ -319,7 +330,6 @@ export default function ProfilePage() {
                           targetUserId={userId}
                           currentUserId={currentUserId}
                           onBlockChange={() => {
-                            // ブロック状態が変わったらプロフィールを再取得
                             fetchUserProfile()
                           }}
                         />
@@ -327,13 +337,37 @@ export default function ProfilePage() {
                     )}
                   </div>
                 </div>
-                <p className="text-gray-600 mb-2">@{user.username || user.email?.split('@')[0] || 'user'}</p>
-                {user.bio && <p className="text-gray-800 mb-4">{user.bio}</p>}
+                {user.bio && (
+                  <div className="bg-white/50 backdrop-blur-sm rounded-xl p-4 border border-gray-100">
+                    <p className="text-gray-700 leading-relaxed">{user.bio}</p>
+                  </div>
+                )}
 
-                <div className="flex space-x-6 text-sm text-gray-600">
-                  <span><strong>{posts.length}</strong> 投稿</span>
-                  <span><strong>{user._count?.followers || 0}</strong> フォロワー</span>
-                  <span><strong>{user._count?.following || 0}</strong> フォロー中</span>
+                <div className="flex space-x-8">
+                  <div className="text-center group cursor-pointer">
+                    <div className="text-2xl font-bold text-gray-900 group-hover:text-blue-600 transition-colors">
+                      {posts.length}
+                    </div>
+                    <div className="text-sm text-gray-500 group-hover:text-blue-500 transition-colors">
+                      📝 投稿
+                    </div>
+                  </div>
+                  <div className="text-center group cursor-pointer">
+                    <div className="text-2xl font-bold text-gray-900 group-hover:text-purple-600 transition-colors">
+                      {user._count?.followers || 0}
+                    </div>
+                    <div className="text-sm text-gray-500 group-hover:text-purple-500 transition-colors">
+                      👥 フォロワー
+                    </div>
+                  </div>
+                  <div className="text-center group cursor-pointer">
+                    <div className="text-2xl font-bold text-gray-900 group-hover:text-green-600 transition-colors">
+                      {user._count?.following || 0}
+                    </div>
+                    <div className="text-sm text-gray-500 group-hover:text-green-500 transition-colors">
+                      💫 フォロー中
+                    </div>
+                  </div>
                 </div>
               </div>
             )}
