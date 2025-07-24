@@ -29,7 +29,6 @@ interface GoogleMapProps {
 export default function GoogleMap({ posts, onLocationSelect, onStartPhotoGame }: GoogleMapProps) {
   const mapRef = useRef<HTMLDivElement>(null)
   const [map, setMap] = useState<google.maps.Map | null>(null)
-  const [userLocation, setUserLocation] = useState<{lat: number, lng: number} | null>(null)
   const [isLocationLoading, setIsLocationLoading] = useState(true)
   const currentLocationMarkerRef = useRef<google.maps.Marker | null>(null)
 
@@ -74,7 +73,6 @@ export default function GoogleMap({ posts, onLocationSelect, onStartPhotoGame }:
         let currentPos;
         try {
           currentPos = await getCurrentLocation();
-          setUserLocation(currentPos);
           console.log('Current location obtained:', currentPos);
         } catch (error) {
           console.error('Failed to get current location:', error);
@@ -240,7 +238,7 @@ export default function GoogleMap({ posts, onLocationSelect, onStartPhotoGame }:
     if (mapRef.current) {
       initMap()
     }
-  }, [onLocationSelect, onStartPhotoGame])
+  }, [posts, onLocationSelect, onStartPhotoGame])
 
   // 投稿が更新されたときに地図上のマーカーを更新
   useEffect(() => {

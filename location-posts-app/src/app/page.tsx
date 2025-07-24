@@ -1,7 +1,8 @@
 "use client"
 import { useSession, signIn } from "next-auth/react"
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import Link from 'next/link'
+import Image from 'next/image'
 
 interface Reply {
   id: string
@@ -46,13 +47,7 @@ export default function Home() {
   const [showMoreReplies, setShowMoreReplies] = useState<Set<string>>(new Set())
   const [loadingReplies, setLoadingReplies] = useState<Set<string>>(new Set())
 
-  useEffect(() => {
-    if (session) {
-      fetchPosts()
-    }
-  }, [session])
-
-  const fetchPosts = async () => {
+  const fetchPosts = useCallback(async () => {
     try {
       const response = await fetch('/api/posts')
       const data = await response.json()
@@ -86,7 +81,13 @@ export default function Home() {
     } catch (error) {
       console.error('Failed to fetch posts:', error)
     }
-  }
+  }, [session])
+
+  useEffect(() => {
+    if (session) {
+      fetchPosts()
+    }
+  }, [session, fetchPosts])
 
   const handleLike = async (postId: string) => {
     try {
@@ -286,9 +287,11 @@ export default function Home() {
             {/* ユーザー情報 */}
             <div className="flex items-center space-x-3 mb-4">
               <Link href={`/profile/${post.author.id}`} className="flex-shrink-0">
-                <img
+                <Image
                   src={post.author.avatarUrl || '/default-avatar.png'}
                   alt={`${post.author.displayName || post.author.username} avatar`}
+                  width={40}
+                  height={40}
                   className="w-10 h-10 rounded-full object-cover hover:ring-2 hover:ring-blue-300 transition-all cursor-pointer"
                 />
               </Link>
@@ -329,9 +332,11 @@ export default function Home() {
             {/* 画像 */}
             {post.imageUrl && (
               <div className="mb-4">
-                <img
+                <Image
                   src={post.imageUrl}
                   alt="Post image"
+                  width={600}
+                  height={400}
                   className="rounded-lg w-full max-h-96 object-cover"
                 />
               </div>
@@ -393,9 +398,11 @@ export default function Home() {
                       .map((reply) => (
                       <div key={reply.id} className="flex space-x-3">
                         <Link href={`/profile/${reply.author.id}`} className="flex-shrink-0">
-                          <img
+                          <Image
                             src={reply.author.avatarUrl || '/default-avatar.png'}
                             alt={`${reply.author.displayName || reply.author.username} avatar`}
+                            width={32}
+                            height={32}
                             className="w-8 h-8 rounded-full object-cover hover:ring-2 hover:ring-blue-300 transition-all cursor-pointer"
                           />
                         </Link>
@@ -442,9 +449,11 @@ export default function Home() {
                         {replies[post.id].slice(3).map((reply) => (
                           <div key={reply.id} className="flex space-x-3">
                             <Link href={`/profile/${reply.author.id}`} className="flex-shrink-0">
-                              <img
+                              <Image
                                 src={reply.author.avatarUrl || '/default-avatar.png'}
                                 alt={`${reply.author.displayName || reply.author.username} avatar`}
+                                width={32}
+                                height={32}
                                 className="w-8 h-8 rounded-full object-cover hover:ring-2 hover:ring-blue-300 transition-all cursor-pointer"
                               />
                             </Link>
@@ -487,9 +496,11 @@ export default function Home() {
             {replyingTo === post.id && (
               <div className="mt-4 border-t border-gray-100 pt-4">
                 <div className="flex space-x-3">
-                  <img
+                  <Image
                     src={session?.user?.image || '/default-avatar.png'}
                     alt="Your avatar"
+                    width={32}
+                    height={32}
                     className="w-8 h-8 rounded-full object-cover"
                   />
                   <div className="flex-1">

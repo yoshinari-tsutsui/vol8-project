@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useSession } from 'next-auth/react'
 import Image from 'next/image'
 import BlockButton from '@/components/BlockButton'
@@ -25,13 +25,7 @@ export default function BlocksPage() {
   
   const currentUserId = (session?.user as { id: string })?.id
 
-  useEffect(() => {
-    if (currentUserId) {
-      fetchBlockedUsers()
-    }
-  }, [currentUserId])
-
-  const fetchBlockedUsers = async () => {
+  const fetchBlockedUsers = useCallback(async () => {
     if (!currentUserId) return
     
     try {
@@ -45,7 +39,13 @@ export default function BlocksPage() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [currentUserId])
+
+  useEffect(() => {
+    if (currentUserId) {
+      fetchBlockedUsers()
+    }
+  }, [currentUserId, fetchBlockedUsers])
 
   const handleUnblock = (userId: string) => {
     // ブロック解除後にリストを更新
