@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma'
 
 export async function GET() {
   try {
+    console.log('Fetching posts...')
     const posts = await prisma.post.findMany({
       include: {
         author: {
@@ -12,6 +13,12 @@ export async function GET() {
             displayName: true,
             avatarUrl: true,
           }
+        },
+        _count: {
+          select: {
+            likes: true,
+            replies: true
+          }
         }
       },
       orderBy: {
@@ -19,11 +26,12 @@ export async function GET() {
       }
     })
 
+    console.log('Posts fetched:', posts.length)
     return NextResponse.json(posts)
   } catch (error) {
     console.error('Failed to fetch posts:', error)
     return NextResponse.json(
-      { error: 'Failed to fetch posts' },
+      { error: 'Failed to fetch posts', details: error instanceof Error ? error.message : String(error) },
       { status: 500 }
     )
   }
