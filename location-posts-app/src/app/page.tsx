@@ -2,6 +2,7 @@
 import { useSession, signIn } from "next-auth/react"
 import { useState, useEffect } from "react"
 import Image from 'next/image'
+import Link from 'next/link'
 
 interface Reply {
   id: string
@@ -285,15 +286,21 @@ export default function Home() {
           <div key={post.id} className="bg-white rounded-lg shadow-sm p-6">
             {/* ユーザー情報 */}
             <div className="flex items-center space-x-3 mb-4">
-              <img
-                src={post.author.avatarUrl || '/default-avatar.png'}
-                alt={`${post.author.displayName || post.author.username} avatar`}
-                className="w-10 h-10 rounded-full object-cover"
-              />
+              <Link href={`/profile/${post.author.id}`} className="flex-shrink-0">
+                <img
+                  src={post.author.avatarUrl || '/default-avatar.png'}
+                  alt={`${post.author.displayName || post.author.username} avatar`}
+                  className="w-10 h-10 rounded-full object-cover hover:ring-2 hover:ring-blue-300 transition-all cursor-pointer"
+                />
+              </Link>
               <div>
                 <div className="flex items-center space-x-2">
-                  <h3 className="font-semibold">{post.author.displayName || post.author.username}</h3>
-                  <span className="text-gray-500 text-sm">@{post.author.username}</span>
+                  <Link href={`/profile/${post.author.id}`} className="hover:underline">
+                    <h3 className="font-semibold">{post.author.displayName || post.author.username}</h3>
+                  </Link>
+                  <Link href={`/profile/${post.author.id}`} className="hover:underline">
+                    <span className="text-gray-500 text-sm">@{post.author.username}</span>
+                  </Link>
                   <span className="text-gray-500 text-sm">·</span>
                   <span className="text-gray-500 text-sm">
                     {new Date(post.createdAt).toLocaleDateString('ja-JP', {
@@ -386,20 +393,26 @@ export default function Home() {
                       .slice(0, showMoreReplies.has(post.id) ? (replies[post.id].length > 3 ? 3 : replies[post.id].length) : 3)
                       .map((reply) => (
                       <div key={reply.id} className="flex space-x-3">
-                        <img
-                          src={reply.author.avatarUrl || '/default-avatar.png'}
-                          alt={`${reply.author.displayName || reply.author.username} avatar`}
-                          className="w-8 h-8 rounded-full object-cover"
-                        />
+                        <Link href={`/profile/${reply.author.id}`} className="flex-shrink-0">
+                          <img
+                            src={reply.author.avatarUrl || '/default-avatar.png'}
+                            alt={`${reply.author.displayName || reply.author.username} avatar`}
+                            className="w-8 h-8 rounded-full object-cover hover:ring-2 hover:ring-blue-300 transition-all cursor-pointer"
+                          />
+                        </Link>
                         <div className="flex-1">
                           <div className="bg-gray-50 rounded-lg p-3">
                             <div className="flex items-center space-x-2 mb-1">
-                              <span className="font-semibold text-sm">
-                                {reply.author.displayName || reply.author.username}
-                              </span>
-                              <span className="text-gray-500 text-xs">
-                                @{reply.author.username}
-                              </span>
+                              <Link href={`/profile/${reply.author.id}`} className="hover:underline">
+                                <span className="font-semibold text-sm">
+                                  {reply.author.displayName || reply.author.username}
+                                </span>
+                              </Link>
+                              <Link href={`/profile/${reply.author.id}`} className="hover:underline">
+                                <span className="text-gray-500 text-xs">
+                                  @{reply.author.username}
+                                </span>
+                              </Link>
                               <span className="text-gray-500 text-xs">·</span>
                               <span className="text-gray-500 text-xs">
                                 {new Date(reply.createdAt).toLocaleDateString('ja-JP', {
@@ -429,20 +442,26 @@ export default function Home() {
                       <div className="space-y-3">
                         {replies[post.id].slice(3).map((reply) => (
                           <div key={reply.id} className="flex space-x-3">
-                            <img
-                              src={reply.author.avatarUrl || '/default-avatar.png'}
-                              alt={`${reply.author.displayName || reply.author.username} avatar`}
-                              className="w-8 h-8 rounded-full object-cover"
-                            />
+                            <Link href={`/profile/${reply.author.id}`} className="flex-shrink-0">
+                              <img
+                                src={reply.author.avatarUrl || '/default-avatar.png'}
+                                alt={`${reply.author.displayName || reply.author.username} avatar`}
+                                className="w-8 h-8 rounded-full object-cover hover:ring-2 hover:ring-blue-300 transition-all cursor-pointer"
+                              />
+                            </Link>
                             <div className="flex-1">
                               <div className="bg-gray-50 rounded-lg p-3">
                                 <div className="flex items-center space-x-2 mb-1">
-                                  <span className="font-semibold text-sm">
-                                    {reply.author.displayName || reply.author.username}
-                                  </span>
-                                  <span className="text-gray-500 text-xs">
-                                    @{reply.author.username}
-                                  </span>
+                                  <Link href={`/profile/${reply.author.id}`} className="hover:underline">
+                                    <span className="font-semibold text-sm">
+                                      {reply.author.displayName || reply.author.username}
+                                    </span>
+                                  </Link>
+                                  <Link href={`/profile/${reply.author.id}`} className="hover:underline">
+                                    <span className="text-gray-500 text-xs">
+                                      @{reply.author.username}
+                                    </span>
+                                  </Link>
                                   <span className="text-gray-500 text-xs">·</span>
                                   <span className="text-gray-500 text-xs">
                                     {new Date(reply.createdAt).toLocaleDateString('ja-JP', {

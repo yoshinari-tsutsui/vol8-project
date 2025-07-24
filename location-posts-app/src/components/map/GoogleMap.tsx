@@ -127,14 +127,34 @@ export default function GoogleMap({ posts, onLocationSelect, onStartPhotoGame }:
               const authorImg = document.createElement('img')
               authorImg.src = post.author.avatarUrl || 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=32&h=32&fit=crop&crop=face'
               authorImg.alt = post.author.displayName || post.author.username || 'ユーザー'
-              authorImg.style.cssText = 'width: 32px; height: 32px; border-radius: 50%; margin-right: 8px; object-fit: cover;'
+              authorImg.style.cssText = 'width: 32px; height: 32px; border-radius: 50%; margin-right: 8px; object-fit: cover; cursor: pointer; transition: opacity 0.2s;'
               authorImg.onerror = () => {
                 authorImg.src = 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=32&h=32&fit=crop&crop=face'
               }
+              authorImg.addEventListener('click', () => {
+                window.location.href = `/profile/${post.author.id}`
+              })
+              authorImg.addEventListener('mouseenter', () => {
+                authorImg.style.opacity = '0.8'
+              })
+              authorImg.addEventListener('mouseleave', () => {
+                authorImg.style.opacity = '1'
+              })
               
               const authorName = document.createElement('span')
               authorName.textContent = post.author.displayName || post.author.username || 'ユーザー'
-              authorName.style.fontWeight = 'bold'
+              authorName.style.cssText = 'font-weight: bold; cursor: pointer; color: #3b82f6; text-decoration: none; transition: color 0.2s;'
+              authorName.addEventListener('click', () => {
+                window.location.href = `/profile/${post.author.id}`
+              })
+              authorName.addEventListener('mouseenter', () => {
+                authorName.style.color = '#1d4ed8'
+                authorName.style.textDecoration = 'underline'
+              })
+              authorName.addEventListener('mouseleave', () => {
+                authorName.style.color = '#3b82f6'
+                authorName.style.textDecoration = 'none'
+              })
               
               authorDiv.appendChild(authorImg)
               authorDiv.appendChild(authorName)
@@ -246,14 +266,34 @@ export default function GoogleMap({ posts, onLocationSelect, onStartPhotoGame }:
         const authorImg = document.createElement('img')
         authorImg.src = post.author.avatarUrl || 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=32&h=32&fit=crop&crop=face'
         authorImg.alt = post.author.displayName || post.author.username || 'ユーザー'
-        authorImg.style.cssText = 'width: 32px; height: 32px; border-radius: 50%; margin-right: 8px; object-fit: cover;'
+        authorImg.style.cssText = 'width: 32px; height: 32px; border-radius: 50%; margin-right: 8px; object-fit: cover; cursor: pointer; transition: opacity 0.2s;'
         authorImg.onerror = () => {
           authorImg.src = 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=32&h=32&fit=crop&crop=face'
         }
+        authorImg.addEventListener('click', () => {
+          window.location.href = `/profile/${post.author.id}`
+        })
+        authorImg.addEventListener('mouseenter', () => {
+          authorImg.style.opacity = '0.8'
+        })
+        authorImg.addEventListener('mouseleave', () => {
+          authorImg.style.opacity = '1'
+        })
         
         const authorName = document.createElement('span')
         authorName.textContent = post.author.displayName || post.author.username || 'ユーザー'
-        authorName.style.fontWeight = 'bold'
+        authorName.style.cssText = 'font-weight: bold; cursor: pointer; color: #3b82f6; text-decoration: none; transition: color 0.2s;'
+        authorName.addEventListener('click', () => {
+          window.location.href = `/profile/${post.author.id}`
+        })
+        authorName.addEventListener('mouseenter', () => {
+          authorName.style.color = '#1d4ed8'
+          authorName.style.textDecoration = 'underline'
+        })
+        authorName.addEventListener('mouseleave', () => {
+          authorName.style.color = '#3b82f6'
+          authorName.style.textDecoration = 'none'
+        })
         
         authorDiv.appendChild(authorImg)
         authorDiv.appendChild(authorName)

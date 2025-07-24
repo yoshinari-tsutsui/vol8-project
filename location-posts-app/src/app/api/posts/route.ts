@@ -1,10 +1,40 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { getServerSession } from 'next-auth'
+import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 
 export async function GET() {
   try {
     console.log('Fetching posts...')
+    
+    // セッションを取得して現在のユーザーIDを確認
+    const session = await getServerSession(authOptions)
+    let currentUserId = null
+    
+    if (session?.user?.email) {
+      const currentUser = await prisma.user.findUnique({
+        where: { email: session.user.email },
+        select: { id: true }
+      })
+      currentUserId = currentUser?.id
+    }
+    
+    // ブロックしているユーザーのIDを取得
+    let blockedUserIds: string[] = []
+    if (currentUserId) {
+      const blocks = await prisma.block.findMany({
+        where: { blockerId: currentUserId },
+        select: { blockedId: true }
+      })
+      blockedUserIds = blocks.map(block => block.blockedId)
+    }
+    
     const posts = await prisma.post.findMany({
+      where: currentUserId ? {
+        authorId: {
+          notIn: blockedUserIds
+        }
+      } : undefined,
       include: {
         author: {
           select: {
