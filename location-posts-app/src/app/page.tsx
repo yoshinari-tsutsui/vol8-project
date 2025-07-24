@@ -3,6 +3,18 @@ import { useSession, signIn } from "next-auth/react"
 import { useState, useEffect } from "react"
 import Image from 'next/image'
 
+interface Reply {
+  id: string
+  content: string
+  createdAt: string
+  author: {
+    id: string
+    username?: string
+    displayName?: string
+    avatarUrl?: string
+  }
+}
+
 interface Post {
   id: string
   content?: string
@@ -30,6 +42,9 @@ export default function Home() {
   const [likedPosts, setLikedPosts] = useState<Set<string>>(new Set())
   const [replyingTo, setReplyingTo] = useState<string | null>(null)
   const [replyContent, setReplyContent] = useState('')
+  const [replies, setReplies] = useState<Record<string, Reply[]>>({})
+  const [showMoreReplies, setShowMoreReplies] = useState<Set<string>>(new Set())
+  const [loadingReplies, setLoadingReplies] = useState<Set<string>>(new Set())
 
   useEffect(() => {
     if (session) {
@@ -157,6 +172,9 @@ export default function Home() {
         
         setReplyContent('')
         setReplyingTo(null)
+        
+        // 返信を即座に表示するために再取得
+        await fetchReplies(postId)
       } else {
         const errorText = await response.text()
         console.error('Reply failed:', response.status, errorText)
@@ -164,6 +182,47 @@ export default function Home() {
     } catch (error) {
       console.error('Failed to reply:', error)
     }
+  }
+
+  const fetchReplies = async (postId: string) => {
+    if (loadingReplies.has(postId)) return
+    
+    setLoadingReplies(prev => new Set(prev).add(postId))
+    
+    try {
+      const response = await fetch(`/api/posts/${postId}/replies`)
+      if (response.ok) {
+        const repliesData = await response.json()
+        setReplies(prev => ({
+          ...prev,
+          [postId]: repliesData
+        }))
+      }
+    } catch (error) {
+      console.error('Failed to fetch replies:', error)
+    } finally {
+      setLoadingReplies(prev => {
+        const newSet = new Set(prev)
+        newSet.delete(postId)
+        return newSet
+      })
+    }
+  }
+
+  const toggleRepliesVisibility = async (postId: string) => {
+    if (!replies[postId]) {
+      await fetchReplies(postId)
+    }
+    
+    setShowMoreReplies(prev => {
+      const newSet = new Set(prev)
+      if (newSet.has(postId)) {
+        newSet.delete(postId)
+      } else {
+        newSet.add(postId)
+      }
+      return newSet
+    })
   }
 
   const handleSignIn = async () => {
@@ -304,7 +363,107 @@ export default function Home() {
                 <span>💬</span>
                 <span className="text-sm">{post._count?.replies || 0}</span>
               </button>
+              {(post._count?.replies || 0) > 0 && (
+                <button 
+                  onClick={() => toggleRepliesVisibility(post.id)}
+                  className="text-sm text-blue-500 hover:text-blue-600 transition-colors"
+                >
+                  {showMoreReplies.has(post.id) ? '返信を隠す' : '返信を見る'}
+                </button>
+              )}
             </div>
+
+            {/* 返信表示 */}
+            {showMoreReplies.has(post.id) && replies[post.id] && (
+              <div className="mt-4 border-t border-gray-100 pt-4">
+                {loadingReplies.has(post.id) ? (
+                  <div className="text-center py-4">
+                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500 mx-auto"></div>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {replies[post.id]
+                      .slice(0, showMoreReplies.has(post.id) ? (replies[post.id].length > 3 ? 3 : replies[post.id].length) : 3)
+                      .map((reply) => (
+                      <div key={reply.id} className="flex space-x-3">
+                        <img
+                          src={reply.author.avatarUrl || '/default-avatar.png'}
+                          alt={`${reply.author.displayName || reply.author.username} avatar`}
+                          className="w-8 h-8 rounded-full object-cover"
+                        />
+                        <div className="flex-1">
+                          <div className="bg-gray-50 rounded-lg p-3">
+                            <div className="flex items-center space-x-2 mb-1">
+                              <span className="font-semibold text-sm">
+                                {reply.author.displayName || reply.author.username}
+                              </span>
+                              <span className="text-gray-500 text-xs">
+                                @{reply.author.username}
+                              </span>
+                              <span className="text-gray-500 text-xs">·</span>
+                              <span className="text-gray-500 text-xs">
+                                {new Date(reply.createdAt).toLocaleDateString('ja-JP', {
+                                  month: 'short',
+                                  day: 'numeric',
+                                  hour: '2-digit',
+                                  minute: '2-digit'
+                                })}
+                              </span>
+                            </div>
+                            <p className="text-sm text-gray-800">{reply.content}</p>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                    
+                    {replies[post.id].length > 3 && !showMoreReplies.has(post.id + '_all') && (
+                      <button
+                        onClick={() => setShowMoreReplies(prev => new Set(prev).add(post.id + '_all'))}
+                        className="text-sm text-blue-500 hover:text-blue-600 transition-colors ml-11"
+                      >
+                        続きを読む ({replies[post.id].length - 3}件の返信)
+                      </button>
+                    )}
+                    
+                    {showMoreReplies.has(post.id + '_all') && replies[post.id].length > 3 && (
+                      <div className="space-y-3">
+                        {replies[post.id].slice(3).map((reply) => (
+                          <div key={reply.id} className="flex space-x-3">
+                            <img
+                              src={reply.author.avatarUrl || '/default-avatar.png'}
+                              alt={`${reply.author.displayName || reply.author.username} avatar`}
+                              className="w-8 h-8 rounded-full object-cover"
+                            />
+                            <div className="flex-1">
+                              <div className="bg-gray-50 rounded-lg p-3">
+                                <div className="flex items-center space-x-2 mb-1">
+                                  <span className="font-semibold text-sm">
+                                    {reply.author.displayName || reply.author.username}
+                                  </span>
+                                  <span className="text-gray-500 text-xs">
+                                    @{reply.author.username}
+                                  </span>
+                                  <span className="text-gray-500 text-xs">·</span>
+                                  <span className="text-gray-500 text-xs">
+                                    {new Date(reply.createdAt).toLocaleDateString('ja-JP', {
+                                      month: 'short',
+                                      day: 'numeric',
+                                      hour: '2-digit',
+                                      minute: '2-digit'
+                                    })}
+                                  </span>
+                                </div>
+                                <p className="text-sm text-gray-800">{reply.content}</p>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
 
             {/* 返信フォーム */}
             {replyingTo === post.id && (
