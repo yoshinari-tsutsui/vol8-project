@@ -1,7 +1,6 @@
 "use client"
 import { useSession, signIn } from "next-auth/react"
 import { useState, useEffect } from "react"
-import Image from 'next/image'
 import Link from 'next/link'
 
 interface Reply {

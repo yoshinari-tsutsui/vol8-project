@@ -439,8 +439,8 @@ export default function ProfilePage() {
                     {post.content && (
                       <p className="text-gray-800 mb-2">{post.content}</p>
                     )}
-                    {post.address && (
-                      <p className="text-sm text-gray-600 mb-2">📍 {post.address}</p>
+                    {post.location?.address && (
+                      <p className="text-sm text-gray-600 mb-2">📍 {post.location.address}</p>
                     )}
                     <p className="text-xs text-gray-500">
                       {new Date(post.createdAt).toLocaleDateString('ja-JP')}
