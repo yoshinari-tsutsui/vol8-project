@@ -12,6 +12,18 @@ interface Post {
   content?: string
   imageUrl?: string
   musicUrl?: string
+  track?: {
+    id: string
+    name: string
+    artists: Array<{ id: string; name: string }>
+    album: {
+      id: string
+      name: string
+      images: Array<{ url: string; width: number; height: number }>
+    }
+    preview_url?: string
+    external_urls?: { spotify: string }
+  }
   latitude: number
   longitude: number
   address?: string
@@ -69,6 +81,23 @@ export default function MapPage() {
     try {
       const response = await fetch('/api/posts')
       const data = await response.json()
+      console.log('🗺️ 地図ページで投稿データ取得:', {
+        postsCount: data.length,
+        postsWithMusic: data.filter((post: Post) => post.track || post.musicUrl).length,
+        postsWithTrack: data.filter((post: Post) => post.track).length,
+        postsWithMusicUrl: data.filter((post: Post) => post.musicUrl).length,
+        samplePost: data[0] ? {
+          id: data[0].id,
+          hasTrack: !!data[0].track,
+          hasMusicUrl: !!data[0].musicUrl,
+          trackInfo: data[0].track ? {
+            name: data[0].track.name,
+            albumName: data[0].track.album.name,
+            hasAlbumImages: !!data[0].track.album.images,
+            imagesCount: data[0].track.album.images?.length || 0
+          } : null
+        } : null
+      });
       setPosts(data)
     } catch (error) {
       console.error('Failed to fetch posts:', error)
@@ -84,6 +113,8 @@ export default function MapPage() {
     content: string;
     imageFile: File | null;
     imageUrl?: string;
+    musicUrl?: string;
+    musicInfo?: any;
     location: { latitude: number; longitude: number; address?: string } | null;
   }) => {
     try {
@@ -126,6 +157,8 @@ export default function MapPage() {
         body: JSON.stringify({
           content: postData.content,
           imageUrl,
+          musicUrl: postData.musicUrl,
+          musicInfo: postData.musicInfo,
           latitude: selectedLocation?.lat,
           longitude: selectedLocation?.lng,
           address: selectedLocation?.address,

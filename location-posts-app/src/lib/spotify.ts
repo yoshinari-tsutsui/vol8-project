@@ -16,7 +16,13 @@ export const checkSpotifyConfig = (): boolean => {
 
 // 認証状態をチェックする関数
 export const isSpotifyAuthenticated = (): boolean => {
-  return isAuthenticated && !!accessToken;
+  const isAuth = isAuthenticated && !!accessToken;
+  console.log('🎵 Spotify auth check:', {
+    isAuthenticated,
+    hasAccessToken: !!accessToken,
+    result: isAuth
+  });
+  return isAuth;
 };
 
 // アクセストークンを設定
@@ -63,11 +69,23 @@ export const clearSpotifyAuth = () => {
 // Spotify APIの初期化
 export const initializeSpotifyApi = () => {
   if (typeof window !== 'undefined') {
-    spotifyApi = new SpotifyWebApi();
-    // 保存されたトークンがあれば復元
-    restoreSpotifyToken();
+    try {
+      spotifyApi = new SpotifyWebApi();
+      console.log('🎵 Spotify API initialized');
+      
+      // 保存されたトークンがあれば復元
+      const restored = restoreSpotifyToken();
+      if (restored) {
+        console.log('🎵 Spotify token restored from localStorage');
+      }
+      
+      return spotifyApi;
+    } catch (error) {
+      console.error('🎵 Failed to initialize Spotify API:', error);
+      return null;
+    }
   }
-  return spotifyApi;
+  return null;
 };
 
 // Spotify認証URLを生成
@@ -303,3 +321,87 @@ export interface SpotifyTrackInfo {
   preview_url: string | null;
   uri: string;
 } 
+
+// 楽曲IDから詳細情報を取得
+export const getTrackById = async (trackId: string): Promise<SpotifyTrackInfo | null> => {
+  console.log('🎵 getTrackById called with:', trackId);
+  
+  if (!isSpotifyAuthenticated()) {
+    console.warn('🎵 Spotify API is not authenticated');
+    return null;
+  }
+  
+  if (!spotifyApi) {
+    console.warn('🎵 Spotify API not initialized');
+    return null;
+  }
+
+  if (!accessToken) {
+    console.warn('🎵 No access token available');
+    return null;
+  }
+
+  try {
+    console.log('🎵 Calling Spotify API for track:', trackId);
+    const track = await spotifyApi.getTrack(trackId);
+    
+    if (track) {
+      console.log('🎵 Track data received:', {
+        id: track.id,
+        name: track.name,
+        hasAlbum: !!track.album,
+        hasImages: !!track.album?.images?.length
+      });
+      
+      return {
+        id: track.id,
+        name: track.name,
+        artists: track.artists.map((artist: any) => ({
+          id: artist.id,
+          name: artist.name
+        })),
+        album: {
+          id: track.album.id,
+          name: track.album.name,
+          images: track.album.images
+        },
+        duration_ms: track.duration_ms,
+        external_urls: track.external_urls,
+        preview_url: track.preview_url,
+        uri: track.uri
+      };
+    }
+    
+    console.warn('🎵 No track data received from Spotify API');
+    return null;
+  } catch (error) {
+    console.error('🎵 Failed to get track by ID:', {
+      trackId,
+      error: error instanceof Error ? error.message : String(error),
+      errorType: error?.constructor?.name || 'Unknown'
+    });
+    
+    // ネットワークエラーの場合は特に詳細をログ
+    if (error instanceof TypeError && error.message.includes('fetch')) {
+      console.error('🎵 Network error detected - check internet connection');
+    }
+    
+    return null;
+  }
+};
+
+// アルバムIDから詳細情報を取得
+export const getAlbumById = async (albumId: string): Promise<any | null> => {
+  if (!isSpotifyAuthenticated() || !spotifyApi) {
+    console.error('Spotify API is not authenticated');
+    return null;
+  }
+
+  try {
+    const album = await spotifyApi.getAlbum(albumId);
+    return album;
+  } catch (error) {
+    console.error('Failed to get album by ID:', error);
+    return null;
+  }
+}; 

@@ -335,6 +335,22 @@ export default function PostCreator({
     setShowMusicSearch(!showMusicSearch);
   };
 
+  // 選択された音楽の表示
+  useEffect(() => {
+    if (selectedMusic) {
+      console.log('🎵 選択された音楽の詳細:', {
+        trackName: selectedMusic.name,
+        albumName: selectedMusic.album.name,
+        hasAlbumImages: !!selectedMusic.album.images,
+        albumImagesCount: selectedMusic.album.images?.length || 0,
+        firstImageUrl: selectedMusic.album.images?.[0]?.url,
+        imageWidth: selectedMusic.album.images?.[0]?.width,
+        imageHeight: selectedMusic.album.images?.[0]?.height,
+        hasPreview: !!selectedMusic.preview_url
+      });
+    }
+  }, [selectedMusic]);
+
   // フォーム送信
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -602,31 +618,80 @@ export default function PostCreator({
                 <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-3">
-                      {selectedMusic.album.images?.[0] && (
-                        <Image
-                          src={selectedMusic.album.images[0].url}
-                          alt={selectedMusic.album.name}
-                          width={48}
-                          height={48}
-                          className="w-12 h-12 rounded object-cover"
-                        />
+                      {selectedMusic.album.images?.[0] ? (
+                        <div className="relative">
+                          <Image
+                            src={selectedMusic.album.images[0].url}
+                            alt={selectedMusic.album.name}
+                            width={64}
+                            height={64}
+                            className="w-16 h-16 rounded-lg object-cover shadow-md"
+                            onError={(e) => {
+                              console.error('🎵 画像読み込みエラー:', {
+                                imageUrl: selectedMusic.album.images[0].url,
+                                error: e
+                              });
+                              // エラー時にフォールバックアイコンを表示
+                              const target = e.target as HTMLImageElement;
+                              target.style.display = 'none';
+                              const fallback = target.nextElementSibling as HTMLElement;
+                              if (fallback) {
+                                fallback.style.display = 'flex';
+                              }
+                            }}
+                          />
+                          {/* フォールバックアイコン */}
+                          <div className="w-16 h-16 bg-gray-200 rounded-lg flex items-center justify-center hidden">
+                            <svg className="w-8 h-8 text-gray-400" fill="currentColor" viewBox="0 0 24 24">
+                              <path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/>
+                            </svg>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="w-16 h-16 bg-gray-200 rounded-lg flex items-center justify-center">
+                          <svg className="w-8 h-8 text-gray-400" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/>
+                          </svg>
+                        </div>
                       )}
-                      <div>
-                        <p className="font-medium text-green-800">{selectedMusic.name}</p>
-                        <p className="text-sm text-green-700">
+                      <div className="flex-1 min-w-0">
+                        <p className="font-semibold text-green-800 truncate">{selectedMusic.name}</p>
+                        <p className="text-sm text-green-700 truncate">
                           {selectedMusic.artists.map(artist => artist.name).join(', ')}
                         </p>
-                        <p className="text-xs text-green-600">{selectedMusic.album.name}</p>
+                        <p className="text-xs text-green-600 truncate">{selectedMusic.album.name}</p>
+                        {selectedMusic.preview_url && (
+                          <div className="flex items-center mt-1">
+                            <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
+                            <span className="text-xs text-green-600">プレビュー再生可能</span>
+                          </div>
+                        )}
                       </div>
                     </div>
-                    <button
-                      type="button"
-                      onClick={handleMusicRemove}
-                      disabled={isCreating}
-                      className="text-red-600 hover:text-red-800 text-sm font-medium disabled:opacity-50"
-                    >
-                      削除
-                    </button>
+                    <div className="flex flex-col items-end space-y-2">
+                      <button
+                        type="button"
+                        onClick={handleMusicRemove}
+                        disabled={isCreating}
+                        className="text-red-600 hover:text-red-800 text-sm font-medium disabled:opacity-50 p-1 rounded hover:bg-red-50"
+                      >
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                      </button>
+                      {selectedMusic.external_urls?.spotify && (
+                        <a
+                          href={selectedMusic.external_urls.spotify}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-green-600 hover:text-green-800 text-sm font-medium p-1 rounded hover:bg-green-50"
+                        >
+                          <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z"/>
+                          </svg>
+                        </a>
+                      )}
+                    </div>
                   </div>
                 </div>
               ) : (
@@ -640,9 +705,12 @@ export default function PostCreator({
                     type="button"
                     onClick={toggleMusicSearch}
                     disabled={isCreating}
-                    className="w-full px-4 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 font-medium"
+                    className="w-full px-4 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 font-medium flex items-center justify-center space-x-2"
                   >
-                    {showMusicSearch ? '🎵 検索を閉じる' : '🎵 楽曲を検索'}
+                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
+                    </svg>
+                    <span>{showMusicSearch ? '🎵 検索を閉じる' : '🎵 楽曲を検索'}</span>
                   </button>
                 </div>
               )}
