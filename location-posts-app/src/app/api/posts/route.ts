@@ -22,7 +22,7 @@ export async function GET() {
     // 音楽情報をJSONからオブジェクトに変換
     const postsWithMusic = posts.map(post => {
       let track = null;
-      const postWithMusicInfo = post as any; // 型アサーション
+      const postWithMusicInfo = post as typeof post & { musicInfo: string | null };
       
       if (postWithMusicInfo.musicInfo) {
         try {
@@ -113,7 +113,7 @@ export async function POST(req: NextRequest) {
         longitude: parseFloat(longitude),
         address,
         authorId: userId,
-      } as any, // 型アサーション
+      },
       include: {
         author: {
           select: {
@@ -128,7 +128,7 @@ export async function POST(req: NextRequest) {
 
     // 作成された投稿の音楽情報を解析して返す
     let track = null;
-    const postWithMusicInfo = post as any; // 型アサーション
+    const postWithMusicInfo = post as typeof post & { musicInfo: string | null };
     if (postWithMusicInfo.musicInfo) {
       try {
         track = JSON.parse(postWithMusicInfo.musicInfo);

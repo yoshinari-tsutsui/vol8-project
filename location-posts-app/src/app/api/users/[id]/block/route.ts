@@ -3,16 +3,17 @@ import { prisma } from '@/lib/prisma'
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const { blockerId } = await request.json()
     
     if (!blockerId) {
       return NextResponse.json({ error: 'blockerId is required' }, { status: 400 })
     }
 
-    if (blockerId === params.id) {
+    if (blockerId === id) {
       return NextResponse.json({ error: 'Cannot block yourself' }, { status: 400 })
     }
 
@@ -21,7 +22,7 @@ export async function POST(
       where: {
         blockerId_blockedId: {
           blockerId,
-          blockedId: params.id
+          blockedId: id
         }
       }
     })
@@ -36,7 +37,7 @@ export async function POST(
       await tx.block.create({
         data: {
           blockerId,
-          blockedId: params.id
+          blockedId: id
         }
       })
 
@@ -44,8 +45,8 @@ export async function POST(
       await tx.follow.deleteMany({
         where: {
           OR: [
-            { followerId: blockerId, followingId: params.id },
-            { followerId: params.id, followingId: blockerId }
+            { followerId: blockerId, followingId: id },
+            { followerId: id, followingId: blockerId }
           ]
         }
       })
@@ -60,9 +61,10 @@ export async function POST(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const { blockerId } = await request.json()
     
     if (!blockerId) {
@@ -73,7 +75,7 @@ export async function DELETE(
       where: {
         blockerId_blockedId: {
           blockerId,
-          blockedId: params.id
+          blockedId: id
         }
       }
     })
@@ -97,9 +99,10 @@ export async function DELETE(
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const { searchParams } = new URL(request.url)
     const currentUserId = searchParams.get('currentUserId')
     
@@ -113,14 +116,14 @@ export async function GET(
         where: {
           blockerId_blockedId: {
             blockerId: currentUserId,
-            blockedId: params.id
+            blockedId: id
           }
         }
       }),
       prisma.block.findUnique({
         where: {
           blockerId_blockedId: {
-            blockerId: params.id,
+            blockerId: id,
             blockedId: currentUserId
           }
         }

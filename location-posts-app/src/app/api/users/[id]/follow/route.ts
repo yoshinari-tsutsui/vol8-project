@@ -3,16 +3,17 @@ import { prisma } from '@/lib/prisma'
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const { followerId } = await request.json()
     
     if (!followerId) {
       return NextResponse.json({ error: 'followerId is required' }, { status: 400 })
     }
 
-    if (followerId === params.id) {
+    if (followerId === id) {
       return NextResponse.json({ error: 'Cannot follow yourself' }, { status: 400 })
     }
 
@@ -20,7 +21,7 @@ export async function POST(
       where: {
         followerId_followingId: {
           followerId,
-          followingId: params.id
+          followingId: id
         }
       }
     })
@@ -32,7 +33,7 @@ export async function POST(
     const follow = await prisma.follow.create({
       data: {
         followerId,
-        followingId: params.id
+        followingId: id
       }
     })
 
@@ -45,9 +46,10 @@ export async function POST(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const { followerId } = await request.json()
     
     if (!followerId) {
@@ -58,7 +60,7 @@ export async function DELETE(
       where: {
         followerId_followingId: {
           followerId,
-          followingId: params.id
+          followingId: id
         }
       }
     })
@@ -82,9 +84,10 @@ export async function DELETE(
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const { searchParams } = new URL(request.url)
     const currentUserId = searchParams.get('currentUserId')
     
@@ -96,7 +99,7 @@ export async function GET(
       where: {
         followerId_followingId: {
           followerId: currentUserId,
-          followingId: params.id
+          followingId: id
         }
       }
     })

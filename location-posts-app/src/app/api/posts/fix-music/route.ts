@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 
-export async function POST(req: NextRequest) {
+export async function POST() {
   try {
     // musicUrlはあるがmusicInfoがない投稿を取得
     const postsToFix = await prisma.post.findMany({
@@ -10,7 +10,7 @@ export async function POST(req: NextRequest) {
           not: null
         },
         musicInfo: null
-      } as any, // 型アサーション
+      },
       select: {
         id: true,
         musicUrl: true,
@@ -50,7 +50,7 @@ export async function POST(req: NextRequest) {
             where: { id: post.id },
             data: {
               musicInfo: JSON.stringify(musicInfo)
-            } as any // 型アサーション
+            }
           });
 
           results.push({

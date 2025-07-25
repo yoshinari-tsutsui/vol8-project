@@ -6,6 +6,7 @@ import GoogleMap from "@/components/map/GoogleMap"
 import PhotoGameModal from "@/components/game/PhotoGameModel"
 import PostCreat from "@/components/post/PostCreat"
 import { setSpotifyAccessToken } from "@/lib/spotify"
+import { SpotifyTrackInfo } from "@/types"
 
 interface Post {
   id: string
@@ -114,7 +115,7 @@ export default function MapPage() {
     imageFile: File | null;
     imageUrl?: string;
     musicUrl?: string;
-    musicInfo?: any;
+    musicInfo?: SpotifyTrackInfo;
     location: { latitude: number; longitude: number; address?: string } | null;
   }) => {
     try {
