@@ -48,11 +48,34 @@ export default function MapPage() {
   const [showPostForm, setShowPostForm] = useState(false)
   const [showPhotoGame, setShowPhotoGame] = useState(false)
   const [gameData, setGameData] = useState<{postId: string, imageUrl: string} | null>(null)
+  const [initialCenter, setInitialCenter] = useState<{lat: number, lng: number, zoom?: number} | null>(null)
 
-  // Spotify認証成功時の処理
+  // URLパラメータ処理（位置情報とSpotify認証）
   useEffect(() => {
     const spotifyToken = searchParams.get('spotify_token')
     const error = searchParams.get('error')
+    const lat = searchParams.get('lat')
+    const lng = searchParams.get('lng')
+    const zoom = searchParams.get('zoom')
+    
+    // 位置情報パラメータがある場合、マップの初期中央位置を設定
+    if (lat && lng) {
+      const latitude = parseFloat(lat)
+      const longitude = parseFloat(lng)
+      const zoomLevel = zoom ? parseInt(zoom) : 16
+      
+      if (!isNaN(latitude) && !isNaN(longitude)) {
+        console.log('📍 URLパラメータから位置情報を取得:', { lat: latitude, lng: longitude, zoom: zoomLevel })
+        setInitialCenter({ lat: latitude, lng: longitude, zoom: zoomLevel })
+        
+        // URLパラメータをクリーンアップ
+        const url = new URL(window.location.href)
+        url.searchParams.delete('lat')
+        url.searchParams.delete('lng')
+        url.searchParams.delete('zoom')
+        window.history.replaceState({}, '', url.toString())
+      }
+    }
     
     if (spotifyToken) {
       setSpotifyAccessToken(spotifyToken)
@@ -208,6 +231,7 @@ export default function MapPage() {
           posts={posts} 
           onLocationSelect={handleLocationSelect}
           onStartPhotoGame={handleStartPhotoGame}
+          initialCenter={initialCenter}
         />
       </div>
       

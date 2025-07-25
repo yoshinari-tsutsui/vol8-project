@@ -3,6 +3,7 @@ import { useSession, signIn } from "next-auth/react"
 import { useState, useEffect, useCallback } from "react"
 import Link from 'next/link'
 import Image from 'next/image'
+import { useRouter } from 'next/navigation'
 
 interface Reply {
   id: string
@@ -21,6 +22,18 @@ interface Post {
   content?: string
   imageUrl?: string
   musicUrl?: string
+  track?: {
+    id: string
+    name: string
+    artists: Array<{ id: string; name: string }>
+    album: {
+      id: string
+      name: string
+      images: Array<{ url: string; width: number; height: number }>
+    }
+    preview_url?: string
+    external_urls?: { spotify: string }
+  }
   latitude: number
   longitude: number
   address?: string
@@ -39,6 +52,7 @@ interface Post {
 
 export default function Home() {
   const { data: session, status } = useSession()
+  const router = useRouter()
   const [posts, setPosts] = useState<Post[]>([])
   const [likedPosts, setLikedPosts] = useState<Set<string>>(new Set())
   const [replyingTo, setReplyingTo] = useState<string | null>(null)
@@ -226,6 +240,11 @@ export default function Home() {
     })
   }
 
+  const handleLocationClick = (lat: number, lng: number) => {
+    // マップページに移動し、その位置にフォーカス
+    router.push(`/map?lat=${lat}&lng=${lng}&zoom=16`)
+  }
+
   const handleSignIn = async () => {
     await signIn("google", { 
       callbackUrl: window.location.href,
@@ -314,10 +333,14 @@ export default function Home() {
                   </span>
                 </div>
                 {post.address && (
-                  <div className="flex items-center text-gray-500 text-sm">
+                  <button
+                    onClick={() => handleLocationClick(post.latitude, post.longitude)}
+                    className="flex items-center text-gray-500 text-sm hover:text-blue-600 hover:bg-blue-50 rounded-md px-2 py-1 transition-colors cursor-pointer"
+                    title="地図で場所を見る"
+                  >
                     <span className="mr-1">📍</span>
-                    {post.address}
-                  </div>
+                    <span className="truncate max-w-[200px]">{post.address}</span>
+                  </button>
                 )}
               </div>
             </div>
@@ -343,12 +366,57 @@ export default function Home() {
             )}
 
             {/* 音楽 */}
-            {post.musicUrl && (
-              <div className="mb-4 p-3 bg-purple-50 rounded-lg">
-                <div className="flex items-center space-x-2">
-                  <span className="text-purple-600">🎵</span>
-                  <span className="text-sm text-purple-700">音楽が添付されています</span>
-                </div>
+            {(post.musicUrl || post.track) && (
+              <div className="mb-4 p-3 bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg border border-purple-100">
+                {post.track ? (
+                  <div className="flex items-center space-x-3">
+                    {/* アルバムアート */}
+                    {post.track.album?.images && post.track.album.images.length > 0 ? (
+                      <Image
+                        src={post.track.album.images[0].url}
+                        alt="Album art"
+                        width={48}
+                        height={48}
+                        className="rounded-md shadow-sm"
+                      />
+                    ) : (
+                      <div className="w-12 h-12 bg-purple-200 rounded-md flex items-center justify-center">
+                        <span className="text-purple-600 text-lg">🎵</span>
+                      </div>
+                    )}
+                    
+                    {/* 楽曲情報 */}
+                    <div className="flex-1 min-w-0">
+                      <p className="font-semibold text-gray-900 truncate">
+                        {post.track.name}
+                      </p>
+                      <p className="text-sm text-gray-600 truncate">
+                        {post.track.artists.map(artist => artist.name).join(', ')}
+                      </p>
+                      <p className="text-xs text-gray-500 truncate">
+                        {post.track.album.name}
+                      </p>
+                    </div>
+                    
+                    {/* Spotifyリンク */}
+                    {post.track.external_urls?.spotify && (
+                      <a
+                        href={post.track.external_urls.spotify}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded-full text-xs font-medium transition-colors flex items-center space-x-1"
+                      >
+                        <span>🎧</span>
+                        <span>Spotify</span>
+                      </a>
+                    )}
+                  </div>
+                ) : (
+                  <div className="flex items-center space-x-2">
+                    <span className="text-purple-600">🎵</span>
+                    <span className="text-sm text-purple-700">音楽が添付されています</span>
+                  </div>
+                )}
               </div>
             )}
 
