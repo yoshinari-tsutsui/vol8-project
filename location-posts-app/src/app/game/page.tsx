@@ -192,7 +192,7 @@ const GamePage: React.FC = () => {
     return (
         <div className="min-h-screen bg-gray-100 p-4 font-inter flex flex-col items-center justify-center">
             <h1 className="text-4xl font-bold text-gray-800 mb-6 rounded-lg p-3 bg-white shadow-md">
-                写真でゆるふわ対戦！
+                写真バトルゲーム
             </h1>
 
             {gameState.status === 'idle' && (
@@ -303,7 +303,7 @@ const GamePage: React.FC = () => {
                         <div className="mt-6 text-center">
                             <h3 className="text-2xl font-bold text-gray-800">
                                 {gameState.player1Score > gameState.player2Score ? 'あなたの勝利！おめでとう！' :
-                                 gameState.player2Score > gameState.player1Score ? 'CPUの勝利！残念！' : '引き分け！'}
+                                gameState.player2Score > gameState.player1Score ? 'CPUの勝利！残念！' : '引き分け！'}
                             </h3>
                             <button
                                 onClick={startGame}
