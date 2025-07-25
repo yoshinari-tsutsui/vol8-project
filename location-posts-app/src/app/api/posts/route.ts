@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
+import { getServerSession } from 'next-auth/next'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 
@@ -9,14 +9,14 @@ export async function GET() {
     
     // セッションを取得して現在のユーザーIDを確認
     const session = await getServerSession(authOptions)
-    let currentUserId = null
+    let currentUserId: string | null = null
     
     if (session?.user?.email) {
       const currentUser = await prisma.user.findUnique({
         where: { email: session.user.email },
         select: { id: true }
       })
-      currentUserId = currentUser?.id
+      currentUserId = currentUser?.id || null
     }
     
     // ブロックしているユーザーのIDを取得
@@ -42,12 +42,6 @@ export async function GET() {
             username: true,
             displayName: true,
             avatarUrl: true,
-          }
-        },
-        _count: {
-          select: {
-            likes: true,
-            replies: true
           }
         }
       },

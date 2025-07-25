@@ -41,6 +41,7 @@ model Post {
   content     String?
   imageUrl    String?
   musicUrl    String?
+  musicInfo   String?  @db.Text
   latitude    Float
   longitude   Float
   address     String?
