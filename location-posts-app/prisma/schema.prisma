@@ -1,6 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -12,47 +9,46 @@ datasource db {
 
 model User {
   id            String    @id @default(cuid())
-  name          String?
   email         String    @unique
-  emailVerified DateTime?
-  image         String?
   username      String?   @unique
   displayName   String?
   bio           String?
   avatarUrl     String?
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
-
-  posts     Post[]
-  likes     Like[]
-  replies   Reply[]
-  followers Follow[] @relation("UserFollowers")
-  following Follow[] @relation("UserFollowing")
-  blocks    Block[]  @relation("UserBlocks")
-  blockedBy Block[]  @relation("UserBlockedBy")
-  accounts  Account[]
-  sessions  Session[]
+  emailVerified DateTime?
+  image         String?
+  name          String?
+  accounts      Account[]
+  blockedBy     Block[]   @relation("UserBlockedBy")
+  blocks        Block[]   @relation("UserBlocks")
+  followers     Follow[]  @relation("UserFollowers")
+  following     Follow[]  @relation("UserFollowing")
+  likes         Like[]
+  posts         Post[]
+  replies       Reply[]
+  sessions      Session[]
 
   @@map("users")
 }
 
 model Post {
-  id          String   @id @default(cuid())
-  content     String?
-  imageUrl    String?
-  musicUrl    String?
-  musicInfo   String?  @db.Text
-  latitude    Float
-  longitude   Float
-  address     String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id        String   @id @default(cuid())
+  content   String?
+  imageUrl  String?
+  musicUrl  String?
+  latitude  Float
+  longitude Float
+  address   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  authorId  String
+  musicInfo String?  @db.Text
+  likes     Like[]
+  author    User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  replies   Reply[]
 
-  authorId String
-  author   User   @relation(fields: [authorId], references: [id], onDelete: Cascade)
-  likes    Like[]
-  replies  Reply[]
-
+  @@index([authorId], map: "posts_authorId_fkey")
   @@map("posts")
 }
 
@@ -61,11 +57,11 @@ model Follow {
   followerId  String
   followingId String
   createdAt   DateTime @default(now())
-
-  follower  User @relation("UserFollowers", fields: [followerId], references: [id], onDelete: Cascade)
-  following User @relation("UserFollowing", fields: [followingId], references: [id], onDelete: Cascade)
+  follower    User     @relation("UserFollowers", fields: [followerId], references: [id], onDelete: Cascade)
+  following   User     @relation("UserFollowing", fields: [followingId], references: [id], onDelete: Cascade)
 
   @@unique([followerId, followingId])
+  @@index([followingId], map: "follows_followingId_fkey")
   @@map("follows")
 }
 
@@ -74,15 +70,14 @@ model Block {
   blockerId String
   blockedId String
   createdAt DateTime @default(now())
-
-  blocker User @relation("UserBlocks", fields: [blockerId], references: [id], onDelete: Cascade)
-  blocked User @relation("UserBlockedBy", fields: [blockedId], references: [id], onDelete: Cascade)
+  blocked   User     @relation("UserBlockedBy", fields: [blockedId], references: [id], onDelete: Cascade)
+  blocker   User     @relation("UserBlocks", fields: [blockerId], references: [id], onDelete: Cascade)
 
   @@unique([blockerId, blockedId])
+  @@index([blockedId], map: "blocks_blockedId_fkey")
   @@map("blocks")
 }
 
-// NextAuth.js required models
 model Account {
   id                String  @id @default(cuid())
   userId            String
@@ -96,10 +91,10 @@ model Account {
   scope             String?
   id_token          String? @db.Text
   session_state     String?
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([provider, providerAccountId])
+  @@index([userId], map: "accounts_userId_fkey")
   @@map("accounts")
 }
 
@@ -110,6 +105,7 @@ model Session {
   expires      DateTime
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
+  @@index([userId], map: "sessions_userId_fkey")
   @@map("sessions")
 }
 
@@ -127,11 +123,11 @@ model Like {
   userId    String
   postId    String
   createdAt DateTime @default(now())
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-  post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, postId])
+  @@index([postId], map: "likes_postId_fkey")
   @@map("likes")
 }
 
@@ -142,9 +138,10 @@ model Reply {
   postId    String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  author    User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
 
-  author User @relation(fields: [authorId], references: [id], onDelete: Cascade)
-  post   Post @relation(fields: [postId], references: [id], onDelete: Cascade)
-
+  @@index([authorId], map: "replies_authorId_fkey")
+  @@index([postId], map: "replies_postId_fkey")
   @@map("replies")
 }

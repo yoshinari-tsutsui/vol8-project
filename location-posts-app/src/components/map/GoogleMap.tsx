@@ -37,9 +37,10 @@ interface GoogleMapProps {
   posts: Post[]
   onLocationSelect: (lat: number, lng: number, address?: string) => void
   onStartPhotoGame?: (postId: string, imageUrl: string) => void
+  initialCenter?: {lat: number, lng: number, zoom?: number} | null
 }
 
-export default function GoogleMap({ posts, onLocationSelect, onStartPhotoGame }: GoogleMapProps) {
+export default function GoogleMap({ posts, onLocationSelect, onStartPhotoGame, initialCenter }: GoogleMapProps) {
   const mapRef = useRef<HTMLDivElement>(null)
   const [map, setMap] = useState<google.maps.Map | null>(null)
   const [isLocationLoading, setIsLocationLoading] = useState(true)
@@ -130,33 +131,42 @@ export default function GoogleMap({ posts, onLocationSelect, onStartPhotoGame }:
         const { Map } = await loader.importLibrary('maps')
         const { Marker } = await loader.importLibrary('marker')
 
-        // 現在地を取得
+        // 初期中央位置が指定されている場合はそれを使用、そうでなければ現在地を取得
         let currentPos;
-        try {
-          currentPos = await getCurrentLocation();
-          console.log('Current location obtained:', currentPos);
-        } catch (error) {
-          console.warn('Failed to get current location, using default:', error);
-          // デフォルト位置（東京）
-          currentPos = { lat: 35.6762, lng: 139.6503 };
-          
-          // ユーザーに通知（オプション）
-          if (typeof window !== 'undefined' && 'Notification' in window) {
-            if (Notification.permission === 'granted') {
-              new Notification('位置情報エラー', {
-                body: '現在地の取得に失敗しました。デフォルト位置（東京）を使用します。',
-                icon: '/favicon.ico'
-              });
-            }
-          }
-        } finally {
+        let mapZoom = 15;
+        
+        if (initialCenter) {
+          console.log('📍 初期中央位置が指定されています:', initialCenter);
+          currentPos = { lat: initialCenter.lat, lng: initialCenter.lng };
+          mapZoom = initialCenter.zoom || 16;
           setIsLocationLoading(false);
+        } else {
+          try {
+            currentPos = await getCurrentLocation();
+            console.log('Current location obtained:', currentPos);
+          } catch (error) {
+            console.warn('Failed to get current location, using default:', error);
+            // デフォルト位置（東京）
+            currentPos = { lat: 35.6762, lng: 139.6503 };
+            
+            // ユーザーに通知（オプション）
+            if (typeof window !== 'undefined' && 'Notification' in window) {
+              if (Notification.permission === 'granted') {
+                new Notification('位置情報エラー', {
+                  body: '現在地の取得に失敗しました。デフォルト位置（東京）を使用します。',
+                  icon: '/favicon.ico'
+                });
+              }
+            }
+          } finally {
+            setIsLocationLoading(false);
+          }
         }
         
         // マップを初期化
         const mapInstance = new Map(mapRef.current!, {
           center: currentPos,
-          zoom: 15,
+          zoom: mapZoom,
           mapTypeId: 'roadmap'
         })
         setMap(mapInstance)
@@ -434,7 +444,7 @@ export default function GoogleMap({ posts, onLocationSelect, onStartPhotoGame }:
     if (mapRef.current) {
       initMap()
     }
-  }, [posts, onLocationSelect, onStartPhotoGame])
+  }, [posts, onLocationSelect, onStartPhotoGame, initialCenter])
 
   // 投稿が更新されたときに地図上のマーカーを更新
   useEffect(() => {
