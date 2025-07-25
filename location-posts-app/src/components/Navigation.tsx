@@ -21,10 +21,16 @@ export default function Navigation() {
               ホーム
             </Link>
             <Link 
-              href="/explore" 
+              href="/map" 
               className="text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium"
             >
-              探索
+              マップ
+            </Link>
+            <Link 
+              href="/game" 
+              className="text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium"
+            >
+              写真バトル
             </Link>
             {session && (
               <Link 
