@@ -71,7 +71,6 @@ export default function PhotoGameModal({
     try {
       const base64Data = capturedImage.split(',')[1] // data:image/jpeg;base64, を除去
       
-      console.log('Sending photo analysis request...');
       const response = await fetch('/api/photo-match', {
         method: 'POST',
         headers: {
@@ -88,7 +87,6 @@ export default function PhotoGameModal({
       }
 
       const result = await response.json()
-      console.log('Analysis result:', result) // デバッグ用ログ
       
       if (result.error) {
         throw new Error(result.error);
@@ -297,14 +295,6 @@ export default function PhotoGameModal({
               <p className="text-gray-700 mt-2">
                 {analysisResult.description || "分析結果を取得中..."}
               </p>
-              
-              {/* デバッグ情報表示 */}
-              <details className="mt-2">
-                <summary className="text-xs text-gray-500 cursor-pointer">デバッグ情報</summary>
-                <pre className="text-xs text-gray-400 mt-1 bg-gray-100 p-2 rounded overflow-auto">
-                  {JSON.stringify(analysisResult, null, 2)}
-                </pre>
-              </details>
             </div>
           </div>
         )}
