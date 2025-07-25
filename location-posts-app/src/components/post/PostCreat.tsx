@@ -7,7 +7,9 @@ import {
   isSpotifyAuthenticated, 
   initializeSpotifyApi, 
   checkSpotifyConfig,
-  SpotifyTrackInfo 
+  SpotifyTrackInfo,
+  setSpotifyAccessToken,
+  clearSpotifyAuth
 } from '@/lib/spotify';
 
 interface Location {
@@ -67,6 +69,7 @@ export default function PostCreator({
   const [isConnectingSpotify, setIsConnectingSpotify] = useState(false);
   const [showMusicSearch, setShowMusicSearch] = useState(false);
   const [spotifyConfigured, setSpotifyConfigured] = useState(false);
+  const [showAuthModal, setShowAuthModal] = useState(false);
   
   // Refs
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -94,6 +97,34 @@ export default function PostCreator({
     // 定期的に認証状態をチェック
     const interval = setInterval(checkAuthStatus, 1000);
     return () => clearInterval(interval);
+  }, []);
+
+  // URLパラメータからトークンを取得
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const urlParams = new URLSearchParams(window.location.search);
+      const spotifyToken = urlParams.get('spotify_token');
+      const error = urlParams.get('error');
+
+      if (spotifyToken) {
+        // トークンを設定
+        setSpotifyAccessToken(spotifyToken);
+        setIsSpotifyConnected(true);
+        
+        // URLからパラメータを削除
+        const url = new URL(window.location.href);
+        url.searchParams.delete('spotify_token');
+        url.searchParams.delete('success');
+        window.history.replaceState({}, '', url.toString());
+      } else if (error) {
+        console.error('Spotify auth error:', error);
+        
+        // URLからエラーパラメータを削除
+        const url = new URL(window.location.href);
+        url.searchParams.delete('error');
+        window.history.replaceState({}, '', url.toString());
+      }
+    }
   }, []);
 
   // バリデーション
@@ -299,26 +330,21 @@ export default function PostCreator({
       return;
     }
 
-    setIsConnectingSpotify(true);
+    setShowAuthModal(true);
     
-    // Spotifyログインページを新しいウィンドウで開く
-    const authWindow = window.open(
-      '/api/auth/spotify/login',
-      'spotify-auth',
-      'width=600,height=700,scrollbars=yes,resizable=yes'
-    );
+    // 現在のページURLをstateパラメータとして送信
+    const currentUrl = window.location.href;
+    const state = encodeURIComponent(JSON.stringify({ returnUrl: currentUrl }));
+    
+    // Spotify認証ページを同ウィンドウで開く
+    const authUrl = `/api/auth/spotify/login?state=${state}`;
+    window.location.href = authUrl;
+  };
 
-    // ウィンドウが閉じられたかをチェック
-    const checkClosed = setInterval(() => {
-      if (authWindow?.closed) {
-        clearInterval(checkClosed);
-        setIsConnectingSpotify(false);
-        // 認証状態を再チェック
-        setTimeout(() => {
-          setIsSpotifyConnected(isSpotifyAuthenticated());
-        }, 1000);
-      }
-    }, 1000);
+  const handleSpotifyLogout = () => {
+    clearSpotifyAuth();
+    setIsSpotifyConnected(false);
+    setSelectedMusic(null);
   };
 
   const handleMusicSelect = (track: SpotifyTrackInfo) => {
@@ -701,17 +727,27 @@ export default function PostCreator({
                       ✅ Spotify接続済み！楽曲を検索して投稿に追加できます
                     </p>
                   </div>
-                  <button
-                    type="button"
-                    onClick={toggleMusicSearch}
-                    disabled={isCreating}
-                    className="w-full px-4 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 font-medium flex items-center justify-center space-x-2"
-                  >
-                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
-                    </svg>
-                    <span>{showMusicSearch ? '🎵 検索を閉じる' : '🎵 楽曲を検索'}</span>
-                  </button>
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      onClick={toggleMusicSearch}
+                      disabled={isCreating}
+                      className="flex-1 px-4 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 font-medium flex items-center justify-center space-x-2"
+                    >
+                      <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
+                      </svg>
+                      <span>{showMusicSearch ? '🎵 検索を閉じる' : '🎵 楽曲を検索'}</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleSpotifyLogout}
+                      disabled={isCreating}
+                      className="px-4 py-3 bg-red-500 text-white rounded-lg hover:bg-red-600 disabled:opacity-50 font-medium"
+                    >
+                      🚪 ログアウト
+                    </button>
+                  </div>
                 </div>
               )}
 
