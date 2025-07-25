@@ -460,7 +460,7 @@ export default function ProfilePage() {
               {user.followers && user.followers.length > 0 ? (
                 user.followers.map((follow) => (
                   <div key={follow.follower.id} className="flex items-center justify-between">
-                    <div className="flex items-center space-x-3">
+                    <Link href={`/profile/${follow.follower.id}`} className="flex items-center space-x-3 hover:bg-gray-50 rounded-lg p-2 transition-colors flex-1">
                       {follow.follower.avatarUrl ? (
                         <Image
                           src={follow.follower.avatarUrl}
@@ -480,7 +480,7 @@ export default function ProfilePage() {
                         <p className="font-medium">{follow.follower.displayName || follow.follower.username}</p>
                         <p className="text-sm text-gray-600">@{follow.follower.username}</p>
                       </div>
-                    </div>
+                    </Link>
                     <FollowButton
                       targetUserId={follow.follower.id}
                       currentUserId={currentUserId}
@@ -500,7 +500,7 @@ export default function ProfilePage() {
               {user.following && user.following.length > 0 ? (
                 user.following.map((follow) => (
                   <div key={follow.following.id} className="flex items-center justify-between">
-                    <div className="flex items-center space-x-3">
+                    <Link href={`/profile/${follow.following.id}`} className="flex items-center space-x-3 hover:bg-gray-50 rounded-lg p-2 transition-colors flex-1">
                       {follow.following.avatarUrl ? (
                         <Image
                           src={follow.following.avatarUrl}
@@ -520,7 +520,7 @@ export default function ProfilePage() {
                         <p className="font-medium">{follow.following.displayName || follow.following.username}</p>
                         <p className="text-sm text-gray-600">@{follow.following.username}</p>
                       </div>
-                    </div>
+                    </Link>
                     <FollowButton
                       targetUserId={follow.following.id}
                       currentUserId={currentUserId}
