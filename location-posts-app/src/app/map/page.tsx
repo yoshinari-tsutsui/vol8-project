@@ -118,6 +118,11 @@ export default function MapPage() {
     musicInfo?: SpotifyTrackInfo;
     location: { latitude: number; longitude: number; address?: string } | null;
   }) => {
+    if (!postData.location) {
+      alert('位置情報が必要です')
+      return
+    }
+
     try {
       let imageUrl = null;
       
@@ -166,7 +171,7 @@ export default function MapPage() {
           authorId: session.user.email, // セッションからユーザーemailを取得（APIでユーザーIDに変換）
         }),
       })
-      
+
       if (response.ok) {
         await fetchPosts()
         setShowPostForm(false)
