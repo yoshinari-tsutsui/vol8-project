@@ -23,55 +23,62 @@ model User {
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
-  posts     Post[]
-  followers Follow[] @relation("UserFollowers")
-  following Follow[] @relation("UserFollowing")
-  blocks    Block[]  @relation("UserBlocks")
-  blockedBy Block[]  @relation("UserBlockedBy")
-  accounts  Account[]
-  sessions  Session[]
+  posts         Post[]
+  followers     Follow[] @relation("UserFollowers")
+  following     Follow[] @relation("UserFollowing")
+  blocks        Block[]  @relation("UserBlocks")
+  blockedBy     Block[]  @relation("UserBlockedBy")
+  accounts      Account[]
+  sessions      Session[]
 
   @@map("users")
 }
 
+// 投稿情報モデル
+// MySQLの `posts` テーブルに対応
 model Post {
-  id          String   @id @default(cuid())
-  content     String?
-  imageUrl    String?
-  musicUrl    String?
-  latitude    Float
-  longitude   Float
-  address     String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id            String    @id @default(cuid())
+  content       String?
+  imageUrl      String?   // 投稿のメイン画像 (写真投稿機能用として維持)
+  musicUrl      String?   // 投稿のメイン音楽 (写真投稿機能用として維持)
+  latitude      Float
+  longitude     Float
+  address       String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
 
-  authorId String
-  author   User   @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  // geminiImageFeatures は PostImageDetail に移動するため削除
+
+  authorId      String
+  author        User      @relation(fields: [authorId], references: [id], onDelete: Cascade)
+
+  imageDetails  PostImageDetail[] // この投稿に紐づく追加の画像詳細
+  musicDetails  PostMusicDetail[] // この投稿に紐づく追加の音楽詳細
 
   @@map("posts")
 }
 
 model Follow {
-  id          String   @id @default(cuid())
-  followerId  String
-  followingId String
-  createdAt   DateTime @default(now())
+  id            String    @id @default(cuid())
+  followerId    String
+  followingId   String
+  createdAt     DateTime  @default(now())
 
-  follower  User @relation("UserFollowers", fields: [followerId], references: [id], onDelete: Cascade)
-  following User @relation("UserFollowing", fields: [followingId], references: [id], onDelete: Cascade)
+  follower      User @relation("UserFollowers", fields: [followerId], references: [id], onDelete: Cascade)
+  following     User @relation("UserFollowing", fields: [followingId], references: [id], onDelete: Cascade)
 
   @@unique([followerId, followingId])
   @@map("follows")
 }
 
 model Block {
-  id        String   @id @default(cuid())
-  blockerId String
-  blockedId String
-  createdAt DateTime @default(now())
+  id            String    @id @default(cuid())
+  blockerId     String
+  blockedId     String
+  createdAt     DateTime @default(now())
 
-  blocker User @relation("UserBlocks", fields: [blockerId], references: [id], onDelete: Cascade)
-  blocked User @relation("UserBlockedBy", fields: [blockedId], references: [id], onDelete: Cascade)
+  blocker       User @relation("UserBlocks", fields: [blockerId], references: [id], onDelete: Cascade)
+  blocked       User @relation("UserBlockedBy", fields: [blockedId], references: [id], onDelete: Cascade)
 
   @@unique([blockerId, blockedId])
   @@map("blocks")
@@ -115,4 +122,35 @@ model VerificationToken {
 
   @@unique([identifier, token])
   @@map("verificationtokens")
+}
+
+// --- 既存のPostImageDetailとPostMusicDetailモデル ---
+
+model PostImageDetail {
+  id                      String    @id @default(cuid()) // 画像詳細ID
+  postId                  String    // 関連する投稿ID (外部キー)
+  imageUrl                String    @db.VarChar(2048) // 画像のURL
+  // geminiFeatureVector: Gemini APIで算出する画像特徴ベクトル (JSON型、NULL可)
+  // ここに「美麗さ」「迫力」などの5つのステータスをJSON形式で保存
+  geminiFeatureVector     Json?     @map("gemini_feature_vector")
+  geminiEffectDescription String?   @db.Text // Gemini APIが生成する写真の効果説明 (TEXT型、NULL可)
+  uploadedAt              DateTime  @default(now())
+
+  post                    Post      @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@map("post_image_details")
+}
+
+model PostMusicDetail {
+  id                    String    @id @default(cuid())
+  postId                String
+  spotifyTrackId        String    @db.VarChar(255)
+  trackName             String?   @db.VarChar(255)
+  artistName            String?   @db.VarChar(255)
+  albumImageUrl         String?   @db.VarChar(2048)
+  uploadedAt            DateTime  @default(now())
+
+  post                  Post      @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@map("post_music_details")
 }
