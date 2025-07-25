@@ -2,7 +2,32 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   images: {
-    domains: ['localhost', 'example.com', 'images.unsplash.com', 'lh3.googleusercontent.com'],
+    domains: [
+      'localhost', 
+      'example.com', 
+      'images.unsplash.com', 
+      'i.scdn.co', 
+      'lh3.googleusercontent.com',
+      'mosaic.scdn.co',
+      'wrapped-images.spotifycdn.com',
+      'seeded-session-images.scdn.co',
+      'thisis-images.spotifycdn.com',
+      'image-cdn-fa.spotifycdn.com'
+    ],
+    remotePatterns: [
+      {
+        protocol: 'http',
+        hostname: '*.scdn.co',
+      },
+      {
+        protocol: 'http',
+        hostname: '*.spotifycdn.com',
+      },
+      {
+        protocol: 'http',
+        hostname: 'i.scdn.co',
+      },
+    ],
     dangerouslyAllowSVG: true,
     contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
   },
@@ -13,10 +38,6 @@ const nextConfig: NextConfig = {
     GEMINI_API_KEY: process.env.GEMINI_API_KEY,
     DATABASE_URL: process.env.DATABASE_URL,
   },
-  // HTTPS設定（開発環境）
-  // experimental: {
-  //   https: process.env.NODE_ENV === 'development',
-  // },
 };
 
 export default nextConfig;

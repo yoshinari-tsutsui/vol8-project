@@ -5,10 +5,10 @@ import { prisma } from '@/lib/prisma'
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const postId = params.id
+    const { id: postId } = await params
     
     // セッションからユーザー情報を取得
     const session = await getServerSession(authOptions)

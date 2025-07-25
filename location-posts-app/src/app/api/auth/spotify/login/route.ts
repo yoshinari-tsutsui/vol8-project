@@ -13,6 +13,6 @@ export async function GET(request: NextRequest) {
     
     // エラーページにリダイレクト
     const baseUrl = request.nextUrl.origin;
-    return NextResponse.redirect(`${baseUrl}/test-post?error=spotify_config`);
+    return NextResponse.redirect(`${baseUrl}/map?error=spotify_config`);
   }
 } 

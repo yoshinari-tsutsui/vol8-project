@@ -1,6 +1,7 @@
 "use client"
 import { useEffect, useRef, useState } from 'react'
 import { Loader } from '@googlemaps/js-api-loader'
+import { getTrackById } from '@/lib/spotify'
 
 /// <reference types="google.maps" />
 
@@ -9,6 +10,18 @@ interface Post {
   content?: string
   imageUrl?: string
   musicUrl?: string
+  track?: {
+    id: string
+    name: string
+    artists: Array<{ id: string; name: string }>
+    album: {
+      id: string
+      name: string
+      images: Array<{ url: string; width: number; height: number }>
+    }
+    preview_url?: string
+    external_urls?: { spotify: string }
+  }
   latitude: number
   longitude: number
   address?: string
@@ -31,14 +44,40 @@ export default function GoogleMap({ posts, onLocationSelect, onStartPhotoGame }:
   const [map, setMap] = useState<google.maps.Map | null>(null)
   const [isLocationLoading, setIsLocationLoading] = useState(true)
   const currentLocationMarkerRef = useRef<google.maps.Marker | null>(null)
+  const [trackCache, setTrackCache] = useState<{[key: string]: any}>({})
+
+  // Spotify APIから楽曲情報を取得する関数
+  const fetchTrackInfo = async (trackId: string) => {
+    if (trackCache[trackId]) {
+      return trackCache[trackId];
+    }
+
+    try {
+      const trackInfo = await getTrackById(trackId);
+      if (trackInfo) {
+        setTrackCache(prev => ({ ...prev, [trackId]: trackInfo }));
+        return trackInfo;
+      }
+    } catch (error) {
+      console.error('Failed to fetch track info:', error);
+    }
+    return null;
+  };
 
   // 現在地を取得する関数
   const getCurrentLocation = () => {
     return new Promise<{lat: number, lng: number}>((resolve, reject) => {
       if (!navigator.geolocation) {
+        console.warn('Geolocation not supported by this browser');
         reject(new Error('Geolocation not supported'));
         return;
       }
+
+      const options = {
+        enableHighAccuracy: true,
+        timeout: 15000, // 15秒に延長
+        maximumAge: 60000
+      };
 
       navigator.geolocation.getCurrentPosition(
         (position) => {
@@ -46,13 +85,35 @@ export default function GoogleMap({ posts, onLocationSelect, onStartPhotoGame }:
             lat: position.coords.latitude,
             lng: position.coords.longitude
           };
+          console.log('Geolocation success:', pos);
           resolve(pos);
         },
         (error) => {
-          console.error('Geolocation failed:', error);
-          reject(error);
+          let errorMessage = 'Unknown geolocation error';
+          
+          switch (error.code) {
+            case error.PERMISSION_DENIED:
+              errorMessage = '位置情報の許可が拒否されました。ブラウザの設定で位置情報を許可してください。';
+              break;
+            case error.POSITION_UNAVAILABLE:
+              errorMessage = '位置情報が利用できません。';
+              break;
+            case error.TIMEOUT:
+              errorMessage = '位置情報の取得がタイムアウトしました。';
+              break;
+            default:
+              errorMessage = `位置情報エラー: ${error.message}`;
+          }
+          
+          console.warn('Geolocation failed:', {
+            code: error.code,
+            message: error.message,
+            userMessage: errorMessage
+          });
+          
+          reject(new Error(errorMessage));
         },
-        { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 }
+        options
       );
     });
   };
@@ -75,9 +136,19 @@ export default function GoogleMap({ posts, onLocationSelect, onStartPhotoGame }:
           currentPos = await getCurrentLocation();
           console.log('Current location obtained:', currentPos);
         } catch (error) {
-          console.error('Failed to get current location:', error);
+          console.warn('Failed to get current location, using default:', error);
           // デフォルト位置（東京）
           currentPos = { lat: 35.6762, lng: 139.6503 };
+          
+          // ユーザーに通知（オプション）
+          if (typeof window !== 'undefined' && 'Notification' in window) {
+            if (Notification.permission === 'granted') {
+              new Notification('位置情報エラー', {
+                body: '現在地の取得に失敗しました。デフォルト位置（東京）を使用します。',
+                icon: '/favicon.ico'
+              });
+            }
+          }
         } finally {
           setIsLocationLoading(false);
         }
@@ -176,15 +247,140 @@ export default function GoogleMap({ posts, onLocationSelect, onStartPhotoGame }:
               }
 
               // 音楽がある場合は表示
-              if (post.musicUrl) {
-                const audio = document.createElement('audio')
-                audio.controls = true
-                audio.style.cssText = 'width: 100%; margin-bottom: 8px;'
-                const source = document.createElement('source')
-                source.src = post.musicUrl
-                source.type = 'audio/mpeg'
-                audio.appendChild(source)
-                infoWindowContent.appendChild(audio)
+              if (post.musicUrl || post.track) {
+                const musicDiv = document.createElement('div')
+                musicDiv.style.cssText = 'margin-bottom: 8px;'
+                
+                // 音楽情報のヘッダー
+                const musicHeader = document.createElement('div')
+                musicHeader.style.cssText = 'display: flex; align-items: center; margin-bottom: 6px;'
+                
+                const musicIcon = document.createElement('span')
+                musicIcon.textContent = '🎵'
+                musicIcon.style.cssText = 'margin-right: 6px; font-size: 16px;'
+                musicHeader.appendChild(musicIcon)
+                
+                const musicLabel = document.createElement('span')
+                musicLabel.textContent = '音楽'
+                musicLabel.style.cssText = 'font-weight: bold; font-size: 14px; color: #374151;'
+                musicHeader.appendChild(musicLabel)
+                
+                musicDiv.appendChild(musicHeader)
+                
+                // 音楽情報の詳細
+                if (post.track) {
+                  const trackInfoDiv = document.createElement('div')
+                  trackInfoDiv.style.cssText = 'display: flex; align-items: center; background: #f3f4f6; padding: 8px; border-radius: 6px;'
+                  
+                  // 楽曲IDがある場合はSpotify APIから情報を取得
+                  const loadTrackInfo = async () => {
+                    if (post.track?.id) {
+                      const freshTrackInfo = await fetchTrackInfo(post.track.id);
+                      if (freshTrackInfo && freshTrackInfo.album?.images?.length > 0) {
+                        console.log('🎵 Spotify APIからアルバムアート取得:', {
+                          trackName: freshTrackInfo.name,
+                          albumName: freshTrackInfo.album.name,
+                          imageUrl: freshTrackInfo.album.images[0].url
+                        });
+                        
+                        // アルバムアートを更新
+                        const albumArtContainer = trackInfoDiv.querySelector('.album-art-container') as HTMLElement;
+                        if (albumArtContainer) {
+                          albumArtContainer.style.backgroundImage = `url(${freshTrackInfo.album.images[0].url})`;
+                        }
+                      }
+                    }
+                  };
+                  
+                  // アルバムアート
+                  if (post.track?.album?.images && post.track.album.images.length > 0) {
+                    // より確実な画像表示のため、imgタグの代わりにdivで背景画像を使用
+                    const albumArtContainer = document.createElement('div')
+                    albumArtContainer.className = 'album-art-container'
+                    albumArtContainer.style.cssText = 'width: 40px; height: 40px; border-radius: 4px; margin-right: 8px; border: 1px solid #e5e7eb; background-size: cover; background-position: center; background-repeat: no-repeat;'
+                    
+                    // 画像をプリロードしてから背景に設定
+                    const img = new Image()
+                    img.crossOrigin = 'anonymous'
+                    img.onload = () => {
+                      console.log('🎵 アルバムアート読み込み成功:', post.track?.album?.images?.[0]?.url);
+                      albumArtContainer.style.backgroundImage = `url(${post.track?.album?.images?.[0]?.url})`
+                    }
+                    img.onerror = () => {
+                      console.error('🎵 アルバムアート読み込みエラー:', post.track?.album?.images?.[0]?.url);
+                      // エラー時にSpotify APIから再取得を試行
+                      loadTrackInfo();
+                      // フォールバックアイコンを表示
+                      albumArtContainer.style.background = '#f3f4f6'
+                      albumArtContainer.innerHTML = '<div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 16px;">🎵</div>'
+                    }
+                    img.src = post.track?.album?.images?.[0]?.url || ''
+                    
+                    trackInfoDiv.appendChild(albumArtContainer)
+                  } else {
+                    console.log('🎵 アルバムアートなし、Spotify APIから取得を試行:', {
+                      trackName: post.track?.name,
+                      trackId: post.track?.id
+                    });
+                    
+                    // フォールバックアイコンを表示
+                    const fallbackIcon = document.createElement('div')
+                    fallbackIcon.style.cssText = 'width: 40px; height: 40px; border-radius: 4px; background: #f3f4f6; display: flex; align-items: center; justify-content: center; margin-right: 8px; border: 1px solid #e5e7eb;'
+                    fallbackIcon.innerHTML = '🎵'
+                    trackInfoDiv.appendChild(fallbackIcon)
+                    
+                    // Spotify APIから情報を取得
+                    loadTrackInfo();
+                  }
+                  
+                  // 楽曲情報
+                  const trackDetailsDiv = document.createElement('div')
+                  trackDetailsDiv.style.cssText = 'flex: 1; min-width: 0;'
+                  
+                  const trackName = document.createElement('div')
+                  trackName.textContent = post.track.name
+                  trackName.style.cssText = 'font-weight: 600; font-size: 13px; color: #111827; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;'
+                  trackDetailsDiv.appendChild(trackName)
+                  
+                  const artistName = document.createElement('div')
+                  artistName.textContent = post.track.artists.map(artist => artist.name).join(', ')
+                  artistName.style.cssText = 'font-size: 12px; color: #6b7280; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;'
+                  trackDetailsDiv.appendChild(artistName)
+                  
+                  const albumName = document.createElement('div')
+                  albumName.textContent = post.track.album.name
+                  albumName.style.cssText = 'font-size: 11px; color: #9ca3af; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;'
+                  trackDetailsDiv.appendChild(albumName)
+                  
+                  trackInfoDiv.appendChild(trackDetailsDiv)
+                  
+                  // Spotifyリンク
+                  if (post.track.external_urls?.spotify) {
+                    const spotifyLink = document.createElement('a')
+                    spotifyLink.href = post.track.external_urls.spotify
+                    spotifyLink.target = '_blank'
+                    spotifyLink.style.cssText = 'display: inline-block; margin-left: 8px;'
+                    
+                    const spotifyIcon = document.createElement('span')
+                    spotifyIcon.textContent = '🎧'
+                    spotifyIcon.style.cssText = 'font-size: 16px; cursor: pointer;'
+                    spotifyLink.appendChild(spotifyIcon)
+                    
+                    trackInfoDiv.appendChild(spotifyLink)
+                  }
+                  
+                  musicDiv.appendChild(trackInfoDiv)
+                } else if (post.musicUrl) {
+                  // 古い形式の音楽URLがある場合
+                  const musicLink = document.createElement('a')
+                  musicLink.href = post.musicUrl
+                  musicLink.target = '_blank'
+                  musicLink.textContent = 'Spotifyで再生'
+                  musicLink.style.cssText = 'display: inline-block; background: #1db954; color: white; padding: 6px 12px; border-radius: 4px; text-decoration: none; font-size: 12px;'
+                  musicDiv.appendChild(musicLink)
+                }
+                
+                infoWindowContent.appendChild(musicDiv)
               }
 
               // 写真ゲームボタン（画像がある場合のみ）
@@ -315,15 +511,140 @@ export default function GoogleMap({ posts, onLocationSelect, onStartPhotoGame }:
         }
 
         // 音楽がある場合は表示
-        if (post.musicUrl) {
-          const audio = document.createElement('audio')
-          audio.controls = true
-          audio.style.cssText = 'width: 100%; margin-bottom: 8px;'
-          const source = document.createElement('source')
-          source.src = post.musicUrl
-          source.type = 'audio/mpeg'
-          audio.appendChild(source)
-          infoWindowContent.appendChild(audio)
+        if (post.musicUrl || post.track) {
+          const musicDiv = document.createElement('div')
+          musicDiv.style.cssText = 'margin-bottom: 8px;'
+          
+          // 音楽情報のヘッダー
+          const musicHeader = document.createElement('div')
+          musicHeader.style.cssText = 'display: flex; align-items: center; margin-bottom: 6px;'
+          
+          const musicIcon = document.createElement('span')
+          musicIcon.textContent = '🎵'
+          musicIcon.style.cssText = 'margin-right: 6px; font-size: 16px;'
+          musicHeader.appendChild(musicIcon)
+          
+          const musicLabel = document.createElement('span')
+          musicLabel.textContent = '音楽'
+          musicLabel.style.cssText = 'font-weight: bold; font-size: 14px; color: #374151;'
+          musicHeader.appendChild(musicLabel)
+          
+          musicDiv.appendChild(musicHeader)
+          
+          // 音楽情報の詳細
+          if (post.track) {
+            const trackInfoDiv = document.createElement('div')
+            trackInfoDiv.style.cssText = 'display: flex; align-items: center; background: #f3f4f6; padding: 8px; border-radius: 6px;'
+            
+            // 楽曲IDがある場合はSpotify APIから情報を取得
+            const loadTrackInfo = async () => {
+              if (post.track?.id) {
+                const freshTrackInfo = await fetchTrackInfo(post.track.id);
+                if (freshTrackInfo && freshTrackInfo.album?.images?.length > 0) {
+                  console.log('🎵 Spotify APIからアルバムアート取得:', {
+                    trackName: freshTrackInfo.name,
+                    albumName: freshTrackInfo.album.name,
+                    imageUrl: freshTrackInfo.album.images[0].url
+                  });
+                  
+                  // アルバムアートを更新
+                  const albumArtContainer = trackInfoDiv.querySelector('.album-art-container') as HTMLElement;
+                  if (albumArtContainer) {
+                    albumArtContainer.style.backgroundImage = `url(${freshTrackInfo.album.images[0].url})`;
+                  }
+                }
+              }
+            };
+            
+            // アルバムアート
+            if (post.track?.album?.images && post.track.album.images.length > 0) {
+              // より確実な画像表示のため、imgタグの代わりにdivで背景画像を使用
+              const albumArtContainer = document.createElement('div')
+              albumArtContainer.className = 'album-art-container'
+              albumArtContainer.style.cssText = 'width: 40px; height: 40px; border-radius: 4px; margin-right: 8px; border: 1px solid #e5e7eb; background-size: cover; background-position: center; background-repeat: no-repeat;'
+              
+              // 画像をプリロードしてから背景に設定
+              const img = new Image()
+              img.crossOrigin = 'anonymous'
+              img.onload = () => {
+                console.log('🎵 アルバムアート読み込み成功:', post.track?.album?.images?.[0]?.url);
+                albumArtContainer.style.backgroundImage = `url(${post.track?.album?.images?.[0]?.url})`
+              }
+              img.onerror = () => {
+                console.error('🎵 アルバムアート読み込みエラー:', post.track?.album?.images?.[0]?.url);
+                // エラー時にSpotify APIから再取得を試行
+                loadTrackInfo();
+                // フォールバックアイコンを表示
+                albumArtContainer.style.background = '#f3f4f6'
+                albumArtContainer.innerHTML = '<div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 16px;">🎵</div>'
+              }
+              img.src = post.track?.album?.images?.[0]?.url || ''
+              
+              trackInfoDiv.appendChild(albumArtContainer)
+            } else {
+              console.log('🎵 アルバムアートなし、Spotify APIから取得を試行:', {
+                trackName: post.track?.name,
+                trackId: post.track?.id
+              });
+              
+              // フォールバックアイコンを表示
+              const fallbackIcon = document.createElement('div')
+              fallbackIcon.style.cssText = 'width: 40px; height: 40px; border-radius: 4px; background: #f3f4f6; display: flex; align-items: center; justify-content: center; margin-right: 8px; border: 1px solid #e5e7eb;'
+              fallbackIcon.innerHTML = '🎵'
+              trackInfoDiv.appendChild(fallbackIcon)
+              
+              // Spotify APIから情報を取得
+              loadTrackInfo();
+            }
+            
+            // 楽曲情報
+            const trackDetailsDiv = document.createElement('div')
+            trackDetailsDiv.style.cssText = 'flex: 1; min-width: 0;'
+            
+            const trackName = document.createElement('div')
+            trackName.textContent = post.track.name
+            trackName.style.cssText = 'font-weight: 600; font-size: 13px; color: #111827; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;'
+            trackDetailsDiv.appendChild(trackName)
+            
+            const artistName = document.createElement('div')
+            artistName.textContent = post.track.artists.map(artist => artist.name).join(', ')
+            artistName.style.cssText = 'font-size: 12px; color: #6b7280; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;'
+            trackDetailsDiv.appendChild(artistName)
+            
+            const albumName = document.createElement('div')
+            albumName.textContent = post.track.album.name
+            albumName.style.cssText = 'font-size: 11px; color: #9ca3af; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;'
+            trackDetailsDiv.appendChild(albumName)
+            
+            trackInfoDiv.appendChild(trackDetailsDiv)
+            
+            // Spotifyリンク
+            if (post.track.external_urls?.spotify) {
+              const spotifyLink = document.createElement('a')
+              spotifyLink.href = post.track.external_urls.spotify
+              spotifyLink.target = '_blank'
+              spotifyLink.style.cssText = 'display: inline-block; margin-left: 8px;'
+              
+              const spotifyIcon = document.createElement('span')
+              spotifyIcon.textContent = '🎧'
+              spotifyIcon.style.cssText = 'font-size: 16px; cursor: pointer;'
+              spotifyLink.appendChild(spotifyIcon)
+              
+              trackInfoDiv.appendChild(spotifyLink)
+            }
+            
+            musicDiv.appendChild(trackInfoDiv)
+          } else if (post.musicUrl) {
+            // 古い形式の音楽URLがある場合
+            const musicLink = document.createElement('a')
+            musicLink.href = post.musicUrl
+            musicLink.target = '_blank'
+            musicLink.textContent = 'Spotifyで再生'
+            musicLink.style.cssText = 'display: inline-block; background: #1db954; color: white; padding: 6px 12px; border-radius: 4px; text-decoration: none; font-size: 12px;'
+            musicDiv.appendChild(musicLink)
+          }
+          
+          infoWindowContent.appendChild(musicDiv)
         }
 
         // 写真ゲームボタン（画像がある場合のみ）

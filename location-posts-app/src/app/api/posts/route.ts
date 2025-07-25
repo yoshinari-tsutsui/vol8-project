@@ -56,8 +56,44 @@ export async function GET() {
       }
     })
 
-    console.log('Posts fetched:', posts.length)
-    return NextResponse.json(posts)
+    // 音楽情報をJSONからオブジェクトに変換
+    const postsWithMusic = posts.map(post => {
+      let track = null;
+      const postWithMusicInfo = post as typeof post & { musicInfo: string | null };
+      
+      if (postWithMusicInfo.musicInfo) {
+        try {
+          track = JSON.parse(postWithMusicInfo.musicInfo);
+          console.log('投稿取得 - 音楽情報解析成功:', {
+            postId: post.id,
+            trackName: track.name,
+            hasPreview: !!track.preview_url,
+            albumImages: track.album?.images?.length || 0
+          });
+        } catch (error) {
+          console.warn('Failed to parse music info for post:', post.id, error);
+        }
+      } else {
+        console.log('投稿取得 - 音楽情報なし:', {
+          postId: post.id,
+          musicUrl: post.musicUrl,
+          hasMusicInfo: !!postWithMusicInfo.musicInfo
+        });
+      }
+
+      return {
+        ...post,
+        track,
+        location: {
+          latitude: post.latitude,
+          longitude: post.longitude,
+          address: post.address
+        }
+      };
+    });
+
+    console.log('Posts fetched:', postsWithMusic.length)
+    return NextResponse.json(postsWithMusic)
   } catch (error) {
     console.error('Failed to fetch posts:', error)
     return NextResponse.json(
@@ -70,7 +106,16 @@ export async function GET() {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json()
-    const { content, imageUrl, musicUrl, latitude, longitude, address, authorId } = body
+    const { content, imageUrl, musicUrl, musicInfo, latitude, longitude, address, authorId } = body
+
+    console.log('API受信データ:', {
+      content: content?.substring(0, 50) + '...',
+      hasImage: !!imageUrl,
+      hasMusicUrl: !!musicUrl,
+      hasMusicInfo: !!musicInfo,
+      musicInfoType: typeof musicInfo,
+      authorId
+    });
 
     if (!authorId) {
       return NextResponse.json(
@@ -101,6 +146,7 @@ export async function POST(req: NextRequest) {
         content,
         imageUrl,
         musicUrl,
+        musicInfo: musicInfo ? JSON.stringify(musicInfo) : null,
         latitude: parseFloat(latitude),
         longitude: parseFloat(longitude),
         address,
@@ -118,7 +164,30 @@ export async function POST(req: NextRequest) {
       }
     })
 
-    return NextResponse.json(post)
+    // 作成された投稿の音楽情報を解析して返す
+    let track = null;
+    const postWithMusicInfo = post as typeof post & { musicInfo: string | null };
+    if (postWithMusicInfo.musicInfo) {
+      try {
+        track = JSON.parse(postWithMusicInfo.musicInfo);
+      } catch (error) {
+        console.warn('Failed to parse music info for created post:', error);
+      }
+    }
+
+    const postWithTrack = {
+      ...post,
+      track
+    };
+
+    console.log('作成された投稿:', {
+      id: postWithTrack.id,
+      hasTrack: !!postWithTrack.track,
+      trackName: postWithTrack.track?.name,
+      hasAlbumImages: !!postWithTrack.track?.album?.images?.length
+    });
+
+    return NextResponse.json(postWithTrack)
   } catch (error) {
     console.error('Failed to create post:', error)
     return NextResponse.json(

@@ -1,15 +1,30 @@
 "use client"
 import { useSession } from "next-auth/react"
 import { useState, useEffect } from "react"
+import { useSearchParams } from "next/navigation"
 import GoogleMap from "@/components/map/GoogleMap"
 import PhotoGameModal from "@/components/game/PhotoGameModel"
 import PostCreat from "@/components/post/PostCreat"
+import { setSpotifyAccessToken } from "@/lib/spotify"
+import { SpotifyTrackInfo } from "@/types"
 
 interface Post {
   id: string
   content?: string
   imageUrl?: string
   musicUrl?: string
+  track?: {
+    id: string
+    name: string
+    artists: Array<{ id: string; name: string }>
+    album: {
+      id: string
+      name: string
+      images: Array<{ url: string; width: number; height: number }>
+    }
+    preview_url?: string
+    external_urls?: { spotify: string }
+  }
   latitude: number
   longitude: number
   address?: string
@@ -23,6 +38,7 @@ interface Post {
 
 export default function MapPage() {
   const { data: session, status } = useSession()
+  const searchParams = useSearchParams()
   const [posts, setPosts] = useState<Post[]>([])
   const [selectedLocation, setSelectedLocation] = useState<{
     lat: number
@@ -32,6 +48,29 @@ export default function MapPage() {
   const [showPostForm, setShowPostForm] = useState(false)
   const [showPhotoGame, setShowPhotoGame] = useState(false)
   const [gameData, setGameData] = useState<{postId: string, imageUrl: string} | null>(null)
+
+  // Spotify認証成功時の処理
+  useEffect(() => {
+    const spotifyToken = searchParams.get('spotify_token')
+    const error = searchParams.get('error')
+    
+    if (spotifyToken) {
+      setSpotifyAccessToken(spotifyToken)
+      
+      // URLからパラメータを削除
+      const url = new URL(window.location.href)
+      url.searchParams.delete('spotify_token')
+      url.searchParams.delete('success')
+      window.history.replaceState({}, '', url.toString())
+    } else if (error) {
+      console.error('Spotify認証エラー:', error)
+      
+      // URLからエラーパラメータを削除
+      const url = new URL(window.location.href)
+      url.searchParams.delete('error')
+      window.history.replaceState({}, '', url.toString())
+    }
+  }, [searchParams])
 
   useEffect(() => {
     if (session) {
@@ -43,6 +82,23 @@ export default function MapPage() {
     try {
       const response = await fetch('/api/posts')
       const data = await response.json()
+      console.log('🗺️ 地図ページで投稿データ取得:', {
+        postsCount: data.length,
+        postsWithMusic: data.filter((post: Post) => post.track || post.musicUrl).length,
+        postsWithTrack: data.filter((post: Post) => post.track).length,
+        postsWithMusicUrl: data.filter((post: Post) => post.musicUrl).length,
+        samplePost: data[0] ? {
+          id: data[0].id,
+          hasTrack: !!data[0].track,
+          hasMusicUrl: !!data[0].musicUrl,
+          trackInfo: data[0].track ? {
+            name: data[0].track.name,
+            albumName: data[0].track.album.name,
+            hasAlbumImages: !!data[0].track.album.images,
+            imagesCount: data[0].track.album.images?.length || 0
+          } : null
+        } : null
+      });
       setPosts(data)
     } catch (error) {
       console.error('Failed to fetch posts:', error)
@@ -58,6 +114,8 @@ export default function MapPage() {
     content: string;
     imageFile: File | null;
     imageUrl?: string;
+    musicUrl?: string;
+    musicInfo?: SpotifyTrackInfo;
     location: { latitude: number; longitude: number; address?: string } | null;
   }) => {
     try {
@@ -100,6 +158,8 @@ export default function MapPage() {
         body: JSON.stringify({
           content: postData.content,
           imageUrl,
+          musicUrl: postData.musicUrl,
+          musicInfo: postData.musicInfo,
           latitude: selectedLocation?.lat,
           longitude: selectedLocation?.lng,
           address: selectedLocation?.address,
