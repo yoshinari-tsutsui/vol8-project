@@ -6,6 +6,7 @@ const nextConfig: NextConfig = {
       'localhost', 
       'example.com', 
       'images.unsplash.com', 
+      'picsum.photos',
       'i.scdn.co', 
       'lh3.googleusercontent.com',
       'mosaic.scdn.co',
