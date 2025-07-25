@@ -29,7 +29,6 @@ interface GoogleMapProps {
 export default function GoogleMap({ posts, onLocationSelect, onStartPhotoGame }: GoogleMapProps) {
   const mapRef = useRef<HTMLDivElement>(null)
   const [map, setMap] = useState<google.maps.Map | null>(null)
-  const [userLocation, setUserLocation] = useState<{lat: number, lng: number} | null>(null)
   const [isLocationLoading, setIsLocationLoading] = useState(true)
   const currentLocationMarkerRef = useRef<google.maps.Marker | null>(null)
 
@@ -74,7 +73,6 @@ export default function GoogleMap({ posts, onLocationSelect, onStartPhotoGame }:
         let currentPos;
         try {
           currentPos = await getCurrentLocation();
-          setUserLocation(currentPos);
           console.log('Current location obtained:', currentPos);
         } catch (error) {
           console.error('Failed to get current location:', error);
@@ -127,14 +125,34 @@ export default function GoogleMap({ posts, onLocationSelect, onStartPhotoGame }:
               const authorImg = document.createElement('img')
               authorImg.src = post.author.avatarUrl || 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=32&h=32&fit=crop&crop=face'
               authorImg.alt = post.author.displayName || post.author.username || 'ユーザー'
-              authorImg.style.cssText = 'width: 32px; height: 32px; border-radius: 50%; margin-right: 8px; object-fit: cover;'
+              authorImg.style.cssText = 'width: 32px; height: 32px; border-radius: 50%; margin-right: 8px; object-fit: cover; cursor: pointer; transition: opacity 0.2s;'
               authorImg.onerror = () => {
                 authorImg.src = 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=32&h=32&fit=crop&crop=face'
               }
+              authorImg.addEventListener('click', () => {
+                window.location.href = `/profile/${post.author.id}`
+              })
+              authorImg.addEventListener('mouseenter', () => {
+                authorImg.style.opacity = '0.8'
+              })
+              authorImg.addEventListener('mouseleave', () => {
+                authorImg.style.opacity = '1'
+              })
               
               const authorName = document.createElement('span')
               authorName.textContent = post.author.displayName || post.author.username || 'ユーザー'
-              authorName.style.fontWeight = 'bold'
+              authorName.style.cssText = 'font-weight: bold; cursor: pointer; color: #3b82f6; text-decoration: none; transition: color 0.2s;'
+              authorName.addEventListener('click', () => {
+                window.location.href = `/profile/${post.author.id}`
+              })
+              authorName.addEventListener('mouseenter', () => {
+                authorName.style.color = '#1d4ed8'
+                authorName.style.textDecoration = 'underline'
+              })
+              authorName.addEventListener('mouseleave', () => {
+                authorName.style.color = '#3b82f6'
+                authorName.style.textDecoration = 'none'
+              })
               
               authorDiv.appendChild(authorImg)
               authorDiv.appendChild(authorName)
@@ -220,7 +238,7 @@ export default function GoogleMap({ posts, onLocationSelect, onStartPhotoGame }:
     if (mapRef.current) {
       initMap()
     }
-  }, [onLocationSelect, onStartPhotoGame])
+  }, [posts, onLocationSelect, onStartPhotoGame])
 
   // 投稿が更新されたときに地図上のマーカーを更新
   useEffect(() => {
@@ -246,14 +264,34 @@ export default function GoogleMap({ posts, onLocationSelect, onStartPhotoGame }:
         const authorImg = document.createElement('img')
         authorImg.src = post.author.avatarUrl || 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=32&h=32&fit=crop&crop=face'
         authorImg.alt = post.author.displayName || post.author.username || 'ユーザー'
-        authorImg.style.cssText = 'width: 32px; height: 32px; border-radius: 50%; margin-right: 8px; object-fit: cover;'
+        authorImg.style.cssText = 'width: 32px; height: 32px; border-radius: 50%; margin-right: 8px; object-fit: cover; cursor: pointer; transition: opacity 0.2s;'
         authorImg.onerror = () => {
           authorImg.src = 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=32&h=32&fit=crop&crop=face'
         }
+        authorImg.addEventListener('click', () => {
+          window.location.href = `/profile/${post.author.id}`
+        })
+        authorImg.addEventListener('mouseenter', () => {
+          authorImg.style.opacity = '0.8'
+        })
+        authorImg.addEventListener('mouseleave', () => {
+          authorImg.style.opacity = '1'
+        })
         
         const authorName = document.createElement('span')
         authorName.textContent = post.author.displayName || post.author.username || 'ユーザー'
-        authorName.style.fontWeight = 'bold'
+        authorName.style.cssText = 'font-weight: bold; cursor: pointer; color: #3b82f6; text-decoration: none; transition: color 0.2s;'
+        authorName.addEventListener('click', () => {
+          window.location.href = `/profile/${post.author.id}`
+        })
+        authorName.addEventListener('mouseenter', () => {
+          authorName.style.color = '#1d4ed8'
+          authorName.style.textDecoration = 'underline'
+        })
+        authorName.addEventListener('mouseleave', () => {
+          authorName.style.color = '#3b82f6'
+          authorName.style.textDecoration = 'none'
+        })
         
         authorDiv.appendChild(authorImg)
         authorDiv.appendChild(authorName)

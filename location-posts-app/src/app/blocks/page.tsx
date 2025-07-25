@@ -1,6 +1,7 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
+import { useSession } from 'next-auth/react'
 import Image from 'next/image'
 import BlockButton from '@/components/BlockButton'
 
@@ -18,15 +19,15 @@ interface BlockedUser {
 }
 
 export default function BlocksPage() {
-  const currentUserId = 'user1' // TODO: 実際の認証システムから取得
+  const { data: session, status } = useSession()
   const [blockedUsers, setBlockedUsers] = useState<BlockedUser[]>([])
   const [loading, setLoading] = useState(true)
+  
+  const currentUserId = (session?.user as { id: string })?.id
 
-  useEffect(() => {
-    fetchBlockedUsers()
-  }, [])
-
-  const fetchBlockedUsers = async () => {
+  const fetchBlockedUsers = useCallback(async () => {
+    if (!currentUserId) return
+    
     try {
       const response = await fetch(`/api/users/${currentUserId}/blocks`)
       if (response.ok) {
@@ -38,17 +39,31 @@ export default function BlocksPage() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [currentUserId])
+
+  useEffect(() => {
+    if (currentUserId) {
+      fetchBlockedUsers()
+    }
+  }, [currentUserId, fetchBlockedUsers])
 
   const handleUnblock = (userId: string) => {
     // ブロック解除後にリストを更新
     setBlockedUsers(prev => prev.filter(block => block.blocked.id !== userId))
   }
 
-  if (loading) {
+  if (status === "loading" || loading) {
     return (
       <div className="flex justify-center items-center min-h-screen">
         <div className="text-lg">読み込み中...</div>
+      </div>
+    )
+  }
+  
+  if (!session) {
+    return (
+      <div className="flex justify-center items-center min-h-screen">
+        <div className="text-lg">ログインが必要です</div>
       </div>
     )
   }
