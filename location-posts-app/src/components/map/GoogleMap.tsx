@@ -122,8 +122,16 @@ export default function GoogleMap({ posts, onLocationSelect, onStartPhotoGame, i
   useEffect(() => {
     const initMap = async () => {
       try {
+        // Google Maps APIキーの確認
+        const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
+        if (!apiKey) {
+          console.error('Google Maps API key is missing');
+          setIsLocationLoading(false);
+          return;
+        }
+
         const loader = new Loader({
-          apiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!,
+          apiKey: apiKey,
           version: 'weekly',
           libraries: ['places', 'geometry']
         })
@@ -163,38 +171,87 @@ export default function GoogleMap({ posts, onLocationSelect, onStartPhotoGame, i
           }
         }
         
-        // マップを初期化
-        const mapInstance = new Map(mapRef.current!, {
+        // マップを初期化（mapRef.currentが存在することを確認）
+        if (!mapRef.current) {
+          console.error('Map container not found');
+          return;
+        }
+
+        // 座標の妥当性をチェック
+        if (!currentPos || typeof currentPos.lat !== 'number' || typeof currentPos.lng !== 'number') {
+          console.error('Invalid map center coordinates:', currentPos);
+          return;
+        }
+
+        // ズームレベルの妥当性をチェック
+        if (typeof mapZoom !== 'number' || mapZoom < 1 || mapZoom > 22) {
+          console.warn('Invalid zoom level, using default:', mapZoom);
+          mapZoom = 15;
+        }
+
+        const mapInstance = new Map(mapRef.current, {
           center: currentPos,
           zoom: mapZoom,
-          mapTypeId: 'roadmap'
+          mapTypeId: 'roadmap',
+          // 追加のマップオプションでエラーを防ぐ
+          gestureHandling: 'auto',
+          zoomControl: true,
+          mapTypeControl: false,
+          scaleControl: false,
+          streetViewControl: false,
+          rotateControl: false,
+          fullscreenControl: true
         })
         setMap(mapInstance)
 
-        // 現在地マーカー
-        const currentLocationMarker = new Marker({
-          position: currentPos,
-          map: mapInstance,
-          title: 'Your Current Location',
-          icon: {
-            path: google.maps.SymbolPath.CIRCLE,
-            scale: 10,
-            fillColor: '#4285F4',
-            fillOpacity: 1,
-            strokeColor: '#ffffff',
-            strokeWeight: 3
-          }
-        });
-        currentLocationMarkerRef.current = currentLocationMarker;
+        // 現在地マーカー（安全にチェック）
+        try {
+          const currentLocationMarker = new Marker({
+            position: currentPos,
+            map: mapInstance,
+            title: 'Your Current Location',
+            icon: {
+              path: google.maps.SymbolPath.CIRCLE,
+              scale: 10,
+              fillColor: '#C8956D', // カフェテーマのシナモン色
+              fillOpacity: 1,
+              strokeColor: '#FEFCF8', // ホワイトフォーム色
+              strokeWeight: 3
+            }
+          });
+          currentLocationMarkerRef.current = currentLocationMarker;
+        } catch (error) {
+          console.error('Failed to create current location marker:', error);
+        }
 
         // 投稿マーカーを追加する関数
         const addPostMarkers = (mapInstance: google.maps.Map) => {
           posts.forEach(post => {
-            const marker = new Marker({
-              position: { lat: post.latitude, lng: post.longitude },
-              map: mapInstance,
-              title: post.content || 'Post'
-            })
+            // 投稿の座標が有効かチェック
+            if (typeof post.latitude !== 'number' || typeof post.longitude !== 'number' || 
+                isNaN(post.latitude) || isNaN(post.longitude)) {
+              console.warn('Invalid post coordinates:', { 
+                id: post.id, 
+                lat: post.latitude, 
+                lng: post.longitude 
+              });
+              return;
+            }
+
+            try {
+              const marker = new Marker({
+                position: { lat: post.latitude, lng: post.longitude },
+                map: mapInstance,
+                title: post.content || 'Post',
+                icon: {
+                  path: google.maps.SymbolPath.CIRCLE,
+                  scale: 8,
+                  fillColor: '#8B6F47', // カフェテーマのコーヒーミディアム色
+                  fillOpacity: 0.9,
+                  strokeColor: '#4A3B2A', // コーヒーダーク色
+                  strokeWeight: 2
+                }
+              })
 
               // InfoWindowのコンテンツをDOM要素で作成
               const infoWindowContent = document.createElement('div')
@@ -408,9 +465,12 @@ export default function GoogleMap({ posts, onLocationSelect, onStartPhotoGame, i
                 content: infoWindowContent
               })
 
-            marker.addListener('click', () => {
-              infoWindow.open(mapInstance, marker)
-            })
+              marker.addListener('click', () => {
+                infoWindow.open(mapInstance, marker)
+              })
+            } catch (error) {
+              console.error('Failed to create post marker:', error, { postId: post.id });
+            }
           })
         };
 
@@ -454,11 +514,31 @@ export default function GoogleMap({ posts, onLocationSelect, onStartPhotoGame, i
       
       // 投稿マーカーを再追加
       posts.forEach(post => {
-        const marker = new google.maps.Marker({
-          position: { lat: post.latitude, lng: post.longitude },
-          map: map,
-          title: post.content || 'Post'
-        })
+        // 投稿の座標が有効かチェック
+        if (typeof post.latitude !== 'number' || typeof post.longitude !== 'number' || 
+            isNaN(post.latitude) || isNaN(post.longitude)) {
+          console.warn('Invalid post coordinates in update:', { 
+            id: post.id, 
+            lat: post.latitude, 
+            lng: post.longitude 
+          });
+          return;
+        }
+
+        try {
+          const marker = new google.maps.Marker({
+            position: { lat: post.latitude, lng: post.longitude },
+            map: map,
+            title: post.content || 'Post',
+            icon: {
+              path: google.maps.SymbolPath.CIRCLE,
+              scale: 8,
+              fillColor: '#8B6F47', // カフェテーマのコーヒーミディアム色
+              fillOpacity: 0.9,
+              strokeColor: '#4A3B2A', // コーヒーダーク色
+              strokeWeight: 2
+            }
+          })
 
         // InfoWindowのコンテンツをDOM要素で作成
         const infoWindowContent = document.createElement('div')
@@ -672,9 +752,12 @@ export default function GoogleMap({ posts, onLocationSelect, onStartPhotoGame, i
           content: infoWindowContent
         })
 
-        marker.addListener('click', () => {
-          infoWindow.open(map, marker)
-        })
+          marker.addListener('click', () => {
+            infoWindow.open(map, marker)
+          })
+        } catch (error) {
+          console.error('Failed to create post marker in update:', error, { postId: post.id });
+        }
       })
     }
   }, [posts, map, onStartPhotoGame])
@@ -682,10 +765,10 @@ export default function GoogleMap({ posts, onLocationSelect, onStartPhotoGame, i
   return (
     <div className="w-full h-full relative">
       {isLocationLoading && (
-        <div className="absolute inset-0 bg-white bg-opacity-75 flex items-center justify-center z-10">
+        <div className="absolute inset-0 bg-cream bg-opacity-90 flex items-center justify-center z-10">
           <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
-            <p className="text-gray-600">現在地を取得中...</p>
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-cinnamon mx-auto mb-4"></div>
+            <p className="text-coffee-medium">現在地を取得中...</p>
           </div>
         </div>
       )}

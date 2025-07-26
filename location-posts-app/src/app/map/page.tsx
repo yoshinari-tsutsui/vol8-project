@@ -222,11 +222,25 @@ export default function MapPage() {
   }
 
   if (status === "loading") {
-    return <div>Loading...</div>
+    return (
+      <div className="h-screen flex items-center justify-center bg-cream">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-cinnamon mx-auto mb-4"></div>
+          <p className="text-coffee-medium">Loading...</p>
+        </div>
+      </div>
+    )
   }
 
   if (!session) {
-    return <div>Please sign in to access the map.</div>
+    return (
+      <div className="h-screen flex items-center justify-center bg-cream">
+        <div className="text-center p-8 bg-white-foam rounded-lg shadow-md border border-cappuccino/30">
+          <h2 className="text-xl font-bold text-espresso mb-4">サインインが必要です</h2>
+          <p className="text-coffee-medium">マップを使用するにはサインインしてください。</p>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -241,7 +255,7 @@ export default function MapPage() {
       </div>
       
       {showPostForm && (
-        <div className="w-96 bg-white shadow-lg overflow-y-auto max-h-full">
+        <div className="w-[450px] bg-white-foam shadow-lg overflow-y-auto max-h-full border-l border-cappuccino/30">
           <PostCreat
             onPostCreate={handlePostSubmit}
             selectedLocation={selectedLocation}

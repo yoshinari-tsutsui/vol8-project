@@ -193,16 +193,16 @@ export default function ProfilePage() {
       <div className="flex justify-between items-center mb-6">
         <Link 
           href="/"
-          className="text-gray-600 hover:text-gray-900 flex items-center text-sm"
+          className="text-coffee-medium hover:text-coffee-dark flex items-center text-sm transition-colors duration-200"
         >
           ← ホームに戻る
         </Link>
         {currentUserId === userId && (
           <button 
             onClick={() => signOut({ callbackUrl: '/' })}
-            className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition-colors text-sm"
+            className="bg-coffee-medium text-white-foam px-4 py-2 rounded-lg hover:bg-coffee-dark transition-all duration-300 text-sm shadow-md hover:shadow-lg border border-coffee-dark/20"
           >
-            Sign Out
+            🚪 Sign Out
           </button>
         )}
       </div>
@@ -272,9 +272,9 @@ export default function ProfilePage() {
                   <button
                     onClick={handleEditProfile}
                     disabled={uploading}
-                    className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="px-6 py-3 bg-gradient-to-r from-coffee-medium to-cinnamon text-white-foam rounded-lg hover:from-cinnamon hover:to-coffee-light disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 shadow-md hover:shadow-lg border border-coffee-dark/20"
                   >
-                    {uploading ? 'アップロード中...' : '保存'}
+                    {uploading ? 'アップロード中...' : '💾 保存'}
                   </button>
                   <button
                     onClick={() => {
@@ -286,9 +286,9 @@ export default function ProfilePage() {
                         avatarUrl: user?.avatarUrl || ''
                       })
                     }}
-                    className="px-4 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600"
+                    className="px-6 py-3 bg-cappuccino text-coffee-dark rounded-lg hover:bg-coffee-light transition-all duration-300 shadow-md hover:shadow-lg border border-coffee-light hover:border-coffee-medium"
                   >
-                    キャンセル
+                    ❌ キャンセル
                   </button>
                 </div>
               </div>
@@ -306,13 +306,13 @@ export default function ProfilePage() {
                       <>
                         <button
                           onClick={() => setIsEditing(true)}
-                          className="px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-xl hover:from-blue-600 hover:to-purple-700 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 active:scale-95"
+                          className="px-6 py-3 bg-gradient-to-r from-coffee-medium to-cinnamon text-white-foam rounded-xl hover:from-cinnamon hover:to-coffee-light transition-all duration-300 shadow-md hover:shadow-lg border border-coffee-dark/20 hover:border-coffee-dark/40"
                         >
                           ✏️ プロフィール編集
                         </button>
                         <Link
                           href="/blocks"
-                          className="px-6 py-3 bg-gradient-to-r from-red-500 to-pink-600 text-white rounded-xl hover:from-red-600 hover:to-pink-700 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 active:scale-95"
+                          className="px-6 py-3 bg-cappuccino text-coffee-dark rounded-xl hover:bg-coffee-light transition-all duration-300 shadow-md hover:shadow-lg border border-coffee-light hover:border-coffee-medium"
                         >
                           🚫 ブロックリスト
                         </Link>

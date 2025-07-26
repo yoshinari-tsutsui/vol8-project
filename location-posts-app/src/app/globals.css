@@ -1,8 +1,19 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Cafe Theme Colors - Mappuccino */
+  --coffee-dark: #4A3B2A;    /* ダークブラウン - メインテキスト */
+  --coffee-medium: #8B6F47;  /* ミディアムブラウン - サブテキスト */
+  --coffee-light: #D4B896;   /* ライトブラウン - アクセント */
+  --cream: #F5F1E8;          /* クリーム色 - 背景 */
+  --espresso: #2D1B10;       /* エスプレッソ色 - 強調 */
+  --cappuccino: #E6D4B7;     /* カプチーノ色 - セカンダリ背景 */
+  --latte: #F0E6D2;          /* ラテ色 - ホバー背景 */
+  --cinnamon: #C8956D;       /* シナモン色 - アクセント */
+  --white-foam: #FEFCF8;     /* ホワイトフォーム - 純白背景 */
+  
+  --background: var(--cream);
+  --foreground: var(--coffee-dark);
 }
 
 @theme inline {
@@ -14,8 +25,8 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --background: var(--coffee-dark);
+    --foreground: var(--cream);
   }
 }
 

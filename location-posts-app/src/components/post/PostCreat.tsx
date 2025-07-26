@@ -418,12 +418,25 @@ export default function PostCreator({
   };
 
   return (
-    <div className="max-w-2xl mx-auto bg-white rounded-lg shadow-md p-6">
-      <h2 className="text-2xl font-bold text-gray-800 mb-6">新しい投稿を作成</h2>
+    <div className="max-w-3xl mx-auto bg-white-foam rounded-lg shadow-md p-6 border border-cappuccino/30 relative">
+      {/* 右上の×ボタン */}
+      {onCancel && (
+        <button
+          type="button"
+          onClick={onCancel}
+          disabled={isCreating}
+          className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center bg-cappuccino hover:bg-coffee-light text-coffee-dark rounded-full transition-colors duration-200 hover:shadow-md disabled:opacity-50"
+          title="キャンセル"
+        >
+          ✕
+        </button>
+      )}
+      
+      <h2 className="text-2xl font-bold text-espresso mb-6 pr-10">新しい投稿を作成</h2>
       
       {selectedLocation && (
-        <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-          <p className="text-sm text-blue-800">
+        <div className="mb-4 p-3 bg-latte border border-coffee-light/50 rounded-lg">
+          <p className="text-sm text-coffee-dark">
             📍 選択した位置: {selectedLocation.address || `${selectedLocation.lat.toFixed(4)}, ${selectedLocation.lng.toFixed(4)}`}
           </p>
         </div>
@@ -564,7 +577,7 @@ export default function PostCreator({
                       <button
                         type="button"
                         onClick={startCamera}
-                        className="flex-1 bg-green-500 text-white px-4 py-3 rounded-lg hover:bg-green-600 font-medium disabled:opacity-50"
+                        className="flex-1 bg-gradient-to-r from-coffee-medium to-cinnamon text-white-foam px-4 py-3 rounded-lg hover:from-cinnamon hover:to-coffee-light font-medium disabled:opacity-50 transition-all duration-300 shadow-md hover:shadow-lg border border-coffee-dark/20"
                         disabled={isCreating}
                       >
                         📷 カメラ開始
@@ -574,7 +587,7 @@ export default function PostCreator({
                         <button
                           type="button"
                           onClick={capturePhoto}
-                          className="flex-1 bg-blue-500 text-white px-4 py-3 rounded-lg hover:bg-blue-600 font-medium disabled:opacity-50"
+                          className="flex-1 bg-gradient-to-r from-coffee-medium to-cinnamon text-white-foam px-4 py-3 rounded-lg hover:from-cinnamon hover:to-coffee-light font-medium disabled:opacity-50 transition-all duration-300 shadow-md hover:shadow-lg border border-coffee-dark/20"
                           disabled={isCreating}
                         >
                           📸 撮影
@@ -582,7 +595,7 @@ export default function PostCreator({
                         <button
                           type="button"
                           onClick={stopCamera}
-                          className="flex-1 bg-red-500 text-white px-4 py-3 rounded-lg hover:bg-red-600 font-medium disabled:opacity-50"
+                          className="flex-1 bg-gradient-to-r from-red-500 to-red-600 text-white-foam px-4 py-3 rounded-lg hover:from-red-600 hover:to-red-700 font-medium disabled:opacity-50 transition-all duration-300 shadow-md hover:shadow-lg border border-red-600"
                           disabled={isCreating}
                         >
                           🛑 停止
@@ -616,15 +629,15 @@ export default function PostCreator({
           </label>
           
           {!spotifyConfigured ? (
-            <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-              <p className="text-sm text-yellow-800">
+            <div className="p-4 bg-cappuccino border border-coffee-light/50 rounded-lg">
+              <p className="text-sm text-coffee-dark">
                 🎵 Spotify機能を利用するには環境変数の設定が必要です
               </p>
             </div>
           ) : !isSpotifyConnected ? (
             <div className="space-y-3">
-              <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                <p className="text-sm text-blue-800">
+              <div className="p-3 bg-latte border border-coffee-light/50 rounded-lg">
+                <p className="text-sm text-coffee-dark">
                   🎵 投稿に音楽を追加するには、Spotifyにログインしてください
                 </p>
               </div>
@@ -632,7 +645,7 @@ export default function PostCreator({
                 type="button"
                 onClick={handleSpotifyLogin}
                 disabled={isConnectingSpotify || isCreating}
-                className="w-full px-4 py-3 bg-green-500 text-white rounded-lg hover:bg-green-600 disabled:opacity-50 font-medium"
+                className="w-full px-4 py-3 bg-gradient-to-r from-coffee-medium to-cinnamon text-white-foam rounded-lg hover:from-cinnamon hover:to-coffee-light disabled:opacity-50 font-medium transition-all duration-300 shadow-md hover:shadow-lg border border-coffee-dark/20"
               >
                 {isConnectingSpotify ? 'Spotifyに接続中...' : '🎵 Spotifyにログイン'}
               </button>
@@ -641,7 +654,7 @@ export default function PostCreator({
             <div className="space-y-4">
               {/* 選択された音楽の表示 */}
               {selectedMusic ? (
-                <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
+                <div className="p-4 bg-latte border border-coffee-light/50 rounded-lg">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-3">
                       {selectedMusic.album.images?.[0] ? (
@@ -722,8 +735,8 @@ export default function PostCreator({
                 </div>
               ) : (
                 <div className="space-y-3">
-                  <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
-                    <p className="text-sm text-green-800">
+                  <div className="p-3 bg-latte border border-coffee-light/50 rounded-lg">
+                    <p className="text-sm text-coffee-dark">
                       ✅ Spotify接続済み！楽曲を検索して投稿に追加できます
                     </p>
                   </div>
@@ -732,7 +745,7 @@ export default function PostCreator({
                       type="button"
                       onClick={toggleMusicSearch}
                       disabled={isCreating}
-                      className="flex-1 px-4 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 font-medium flex items-center justify-center space-x-2"
+                      className="flex-1 px-4 py-3 bg-gradient-to-r from-coffee-medium to-cinnamon text-white-foam rounded-lg hover:from-cinnamon hover:to-coffee-light disabled:opacity-50 font-medium flex items-center justify-center space-x-2 transition-all duration-300 shadow-md hover:shadow-lg border border-coffee-dark/20"
                     >
                       <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
                         <path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
@@ -743,7 +756,7 @@ export default function PostCreator({
                       type="button"
                       onClick={handleSpotifyLogout}
                       disabled={isCreating}
-                      className="px-4 py-3 bg-red-500 text-white rounded-lg hover:bg-red-600 disabled:opacity-50 font-medium"
+                      className="px-4 py-3 bg-gradient-to-r from-red-500 to-red-600 text-white-foam rounded-lg hover:from-red-600 hover:to-red-700 disabled:opacity-50 font-medium transition-all duration-300 shadow-md hover:shadow-lg border border-red-600"
                     >
                       🚪 ログアウト
                     </button>
@@ -775,12 +788,12 @@ export default function PostCreator({
           </label>
           
           {location ? (
-            <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
+            <div className="p-4 bg-latte border border-coffee-light/50 rounded-lg">
               <div className="flex justify-between items-start">
                 <div>
-                  <p className="font-medium text-green-800">選択済みの位置</p>
-                  <p className="text-sm text-green-700">{location.address}</p>
-                  <p className="text-xs text-green-600">
+                  <p className="font-medium text-espresso">選択済みの位置</p>
+                  <p className="text-sm text-coffee-medium">{location.address}</p>
+                  <p className="text-xs text-coffee-light">
                     座標: {location.latitude.toFixed(6)}, {location.longitude.toFixed(6)}
                   </p>
                 </div>
@@ -800,7 +813,7 @@ export default function PostCreator({
                 type="button"
                 onClick={getCurrentLocation}
                 disabled={isGettingLocation || isCreating}
-                className="w-full px-4 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50"
+                className="w-full px-4 py-3 bg-gradient-to-r from-coffee-medium to-cinnamon text-white-foam rounded-lg hover:from-cinnamon hover:to-coffee-light disabled:opacity-50 transition-all duration-300 shadow-md hover:shadow-lg border border-coffee-dark/20"
               >
                 {isGettingLocation ? '位置情報を取得中...' : '現在位置を取得'}
               </button>
@@ -836,7 +849,7 @@ export default function PostCreator({
                 type="button"
                 onClick={handleManualLocation}
                 disabled={!manualLocation.latitude || !manualLocation.longitude || isCreating}
-                className="w-full px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 disabled:opacity-50"
+                className="w-full px-4 py-2 bg-coffee-medium text-white-foam rounded-md hover:bg-coffee-dark disabled:opacity-50 transition-colors duration-300 shadow-md hover:shadow-lg border border-coffee-dark/20"
               >
                 座標を設定
               </button>
@@ -849,34 +862,23 @@ export default function PostCreator({
         </div>
 
         {/* ボタン */}
-        <div className="flex gap-3 pt-4">
+        <div className="flex gap-4 pt-6 border-t border-cappuccino/30 mt-6">
           <button
             type="submit"
             disabled={isCreating}
-            className="flex-1 px-6 py-3 bg-blue-500 text-white rounded-lg font-medium hover:bg-blue-600 disabled:opacity-50"
+            className="flex-1 px-8 py-4 bg-gradient-to-r from-coffee-medium to-cinnamon text-white-foam rounded-lg font-semibold text-lg hover:from-cinnamon hover:to-coffee-light disabled:opacity-50 transition-all duration-300 shadow-md hover:shadow-lg border-2 border-coffee-dark/20 hover:border-coffee-dark/40"
           >
-            {isCreating ? '投稿中...' : '投稿する'}
+            {isCreating ? '投稿中...' : '✍️ 投稿する'}
           </button>
           
           <button
             type="button"
             onClick={handleReset}
             disabled={isCreating}
-            className="px-6 py-3 bg-gray-500 text-white rounded-lg font-medium hover:bg-gray-600 disabled:opacity-50"
+            className="px-8 py-4 bg-coffee-medium text-white-foam rounded-lg font-semibold hover:bg-coffee-dark disabled:opacity-50 transition-all duration-300 shadow-md hover:shadow-lg border-2 border-coffee-medium hover:border-coffee-dark"
           >
-            リセット
+            🔄 リセット
           </button>
-          
-          {onCancel && (
-            <button
-              type="button"
-              onClick={onCancel}
-              disabled={isCreating}
-              className="px-6 py-3 bg-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-400 disabled:opacity-50"
-            >
-              キャンセル
-            </button>
-          )}
         </div>
       </form>
       

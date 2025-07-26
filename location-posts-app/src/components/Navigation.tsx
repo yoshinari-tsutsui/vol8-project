@@ -16,8 +16,8 @@ export default function Navigation() {
           relative px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300 ease-in-out
           transform hover:scale-105 hover:shadow-lg
           ${isActive 
-            ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-lg' 
-            : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+            ? 'bg-gradient-to-r from-coffee-medium to-cinnamon text-white-foam shadow-lg' 
+            : 'text-coffee-medium hover:text-espresso hover:bg-latte'
           }
           active:scale-95
         `}
@@ -27,21 +27,21 @@ export default function Navigation() {
           {children}
         </span>
         {isActive && (
-          <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-1 h-1 bg-white rounded-full animate-pulse"></div>
+          <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-1 h-1 bg-white-foam rounded-full animate-pulse"></div>
         )}
       </Link>
     )
   }
 
   return (
-    <nav className="bg-white/90 backdrop-blur-md shadow-sm border-b border-gray-200/50 sticky top-0 z-50">
+    <nav className="bg-white-foam/95 backdrop-blur-md shadow-sm border-b border-cappuccino/50 sticky top-0 z-50">
       <div className="max-w-6xl mx-auto px-4">
         <div className="flex justify-between items-center h-16">
           <Link 
             href="/" 
-            className="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent hover:scale-105 transition-transform duration-200"
+            className="text-xl font-bold bg-gradient-to-r from-espresso to-coffee-medium bg-clip-text text-transparent hover:scale-105 transition-transform duration-200"
           >
-            📍 Location Posts
+            ☕ Mappuccino
           </Link>
           
           <div className="flex items-center space-x-2">
