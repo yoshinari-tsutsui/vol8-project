@@ -69,42 +69,42 @@ export default function BlocksPage() {
   }
 
   return (
-    <div className="max-w-2xl mx-auto p-6">
+    <div className="max-w-2xl mx-auto p-3 sm:p-6">
       <div className="bg-white rounded-lg shadow-md">
-        <div className="p-6 border-b">
-          <h1 className="text-2xl font-bold">ブロックしたユーザー</h1>
-          <p className="text-gray-600 mt-2">
+        <div className="p-4 sm:p-6 border-b">
+          <h1 className="text-xl sm:text-2xl font-bold">ブロックしたユーザー</h1>
+          <p className="text-gray-600 mt-2 text-sm sm:text-base">
             ブロックしたユーザーの一覧です。ブロックを解除するには「ブロック解除」ボタンをクリックしてください。
           </p>
         </div>
 
-        <div className="p-6">
+        <div className="p-4 sm:p-6">
           {blockedUsers.length > 0 ? (
-            <div className="space-y-4">
+            <div className="space-y-3 sm:space-y-4">
               {blockedUsers.map((block) => (
-                <div key={block.id} className="flex items-center justify-between p-4 border rounded-lg">
-                  <div className="flex items-center space-x-3">
+                <div key={block.id} className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-3 sm:p-4 border rounded-lg space-y-3 sm:space-y-0">
+                  <div className="flex items-center space-x-2 sm:space-x-3 w-full sm:w-auto">
                     {block.blocked.avatarUrl ? (
                       <Image
                         src={block.blocked.avatarUrl}
                         alt={block.blocked.displayName || block.blocked.username}
                         width={50}
                         height={50}
-                        className="rounded-full object-cover"
+                        className="w-10 sm:w-12 h-10 sm:h-12 rounded-full object-cover"
                       />
                     ) : (
-                      <div className="w-12 h-12 bg-gray-300 rounded-full flex items-center justify-center">
-                        <span className="text-lg text-gray-500">
+                      <div className="w-10 sm:w-12 h-10 sm:h-12 bg-gray-300 rounded-full flex items-center justify-center">
+                        <span className="text-sm sm:text-lg text-gray-500">
                           {(block.blocked.displayName || block.blocked.username).charAt(0).toUpperCase()}
                         </span>
                       </div>
                     )}
                     <div>
-                      <p className="font-medium text-lg">
+                      <p className="font-medium text-base sm:text-lg">
                         {block.blocked.displayName || block.blocked.username}
                       </p>
-                      <p className="text-gray-600">@{block.blocked.username}</p>
-                      <p className="text-sm text-gray-500">
+                      <p className="text-gray-600 text-sm sm:text-base">@{block.blocked.username}</p>
+                      <p className="text-xs sm:text-sm text-gray-500">
                         ブロック日: {new Date(block.createdAt).toLocaleDateString('ja-JP')}
                       </p>
                     </div>
@@ -123,9 +123,9 @@ export default function BlocksPage() {
               ))}
             </div>
           ) : (
-            <div className="text-center py-12">
-              <div className="text-gray-500 text-lg mb-2">ブロックしているユーザーはいません</div>
-              <p className="text-gray-400">
+            <div className="text-center py-8 sm:py-12">
+              <div className="text-gray-500 text-base sm:text-lg mb-2">ブロックしているユーザーはいません</div>
+              <p className="text-gray-400 text-sm sm:text-base">
                 ユーザーをブロックすると、ここに表示されます。
               </p>
             </div>

@@ -43,6 +43,12 @@ export async function GET() {
             displayName: true,
             avatarUrl: true,
           }
+        },
+        _count: {
+          select: {
+            likes: true,
+            replies: true
+          }
         }
       },
       orderBy: {
@@ -153,6 +159,12 @@ export async function POST(req: NextRequest) {
             username: true,
             displayName: true,
             avatarUrl: true,
+          }
+        },
+        _count: {
+          select: {
+            likes: true,
+            replies: true
           }
         }
       }

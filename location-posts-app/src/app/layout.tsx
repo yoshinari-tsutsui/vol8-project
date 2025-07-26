@@ -31,7 +31,7 @@ export default function RootLayout({
       >
         <AuthProvider>
           <Navigation />
-          <main className="min-h-screen">
+          <main className="min-h-screen px-2 sm:px-4">
             {children}
           </main>
         </AuthProvider>

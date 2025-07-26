@@ -255,7 +255,7 @@ export default function MapPage() {
       </div>
       
       {showPostForm && (
-        <div className="w-[450px] bg-white-foam shadow-lg overflow-y-auto max-h-full border-l border-cappuccino/30">
+        <div className="fixed inset-0 z-50 bg-white sm:relative sm:w-[450px] sm:bg-white-foam shadow-lg overflow-y-auto max-h-full sm:border-l border-cappuccino/30">
           <PostCreat
             onPostCreate={handlePostSubmit}
             selectedLocation={selectedLocation}
