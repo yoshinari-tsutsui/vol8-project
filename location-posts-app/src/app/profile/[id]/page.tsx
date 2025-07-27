@@ -458,8 +458,8 @@ export default function ProfilePage() {
           {activeTab === 'followers' && (
             <div className="space-y-3 sm:space-y-4">
               {user.followers && user.followers.length > 0 ? (
-                user.followers.map((follow) => (
-                  <div key={follow.follower.id} className="flex items-center justify-between">
+                user.followers.map((follow, index) => (
+                  <div key={`follower-${follow.follower.id}-${index}`} className="flex items-center justify-between">
                     <div className="flex items-center space-x-2 sm:space-x-3">
                       {follow.follower.avatarUrl ? (
                         <Image
@@ -498,8 +498,8 @@ export default function ProfilePage() {
           {activeTab === 'following' && (
             <div className="space-y-3 sm:space-y-4">
               {user.following && user.following.length > 0 ? (
-                user.following.map((follow) => (
-                  <div key={follow.following.id} className="flex items-center justify-between">
+                user.following.map((follow, index) => (
+                  <div key={`following-${follow.following.id}-${index}`} className="flex items-center justify-between">
                     <div className="flex items-center space-x-2 sm:space-x-3">
                       {follow.following.avatarUrl ? (
                         <Image
