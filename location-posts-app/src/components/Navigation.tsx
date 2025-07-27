@@ -39,7 +39,7 @@ export default function Navigation() {
         <div className="flex justify-between items-center h-16">
           <Link 
             href="/" 
-            className="text-lg sm:text-xl font-bold bg-gradient-to-r from-espresso to-coffee-medium bg-clip-text text-transparent hover:scale-105 transition-transform duration-200"
+            className="text-lg sm:text-xl font-bold text-espresso hover:text-coffee-dark hover:scale-105 transition-all duration-200"
           >
             <span className="hidden sm:inline">☕ Mappuccino</span>
             <span className="sm:hidden">☕</span>

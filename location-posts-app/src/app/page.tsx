@@ -339,7 +339,7 @@ export default function Home() {
               <h1 className="text-2xl sm:text-3xl font-bold text-espresso mb-1 sm:mb-2">
                 Welcome to
               </h1>
-              <h2 className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-coffee-dark via-coffee-medium to-cinnamon bg-clip-text text-transparent mb-3 sm:mb-4">
+              <h2 className="text-3xl sm:text-4xl font-bold text-coffee-dark mb-3 sm:mb-4">
                 Mappuccino
               </h2>
             </div>
