@@ -60,6 +60,14 @@ export async function GET(
       return NextResponse.json({ error: 'User not found' }, { status: 404 })
     }
 
+    console.log('📊 User profile data:', {
+      userId: user.id,
+      username: user.username,
+      followersCount: user._count.followers,
+      followingCount: user._count.following,
+      postsCount: user._count.posts
+    })
+
     return NextResponse.json(user)
   } catch (error) {
     console.error('Error fetching user:', error)
