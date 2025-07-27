@@ -22,8 +22,8 @@ model User {
   accounts      Account[]
   blockedBy     Block[]   @relation("UserBlockedBy")
   blocks        Block[]   @relation("UserBlocks")
-  followers     Follow[]  @relation("UserFollowers")
-  following     Follow[]  @relation("UserFollowing")
+  followers     Follow[]  @relation("UserFollowing") 
+  following     Follow[]  @relation("UserFollowers")
   likes         Like[]
   posts         Post[]
   replies       Reply[]

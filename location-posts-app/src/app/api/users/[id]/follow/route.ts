@@ -37,6 +37,12 @@ export async function POST(
       }
     })
 
+    console.log('✅ Follow created:', {
+      followerId: followerId,
+      followingId: id,
+      meaning: `User ${followerId} is now following User ${id}`
+    })
+
     return NextResponse.json({ success: true, follow })
   } catch (error) {
     console.error('Error creating follow:', error)
