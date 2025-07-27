@@ -74,7 +74,7 @@ export default function FollowButton({
     return (
       <button 
         disabled 
-        className="px-4 py-2 bg-gray-200 text-gray-500 rounded-md cursor-not-allowed"
+        className="px-3 sm:px-4 py-1 sm:py-2 bg-gray-200 text-gray-500 rounded-md cursor-not-allowed text-xs sm:text-sm"
       >
         読み込み中...
       </button>
@@ -94,7 +94,7 @@ export default function FollowButton({
     <button
       onClick={handleFollowToggle}
       disabled={loading}
-      className={`px-4 py-2 rounded-md font-medium transition-colors ${
+      className={`px-3 sm:px-4 py-1 sm:py-2 rounded-md font-medium transition-colors text-xs sm:text-sm ${
         isFollowing
           ? 'bg-gray-200 text-gray-700 hover:bg-gray-300'
           : 'bg-blue-500 text-white hover:bg-blue-600'

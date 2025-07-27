@@ -35,3 +35,38 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/* レスポンシブ対応のベーススタイル */
+* {
+  box-sizing: border-box;
+}
+
+/* スクロールバーのスタイリング */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--latte);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--coffee-medium);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--coffee-dark);
+}
+
+/* テキストの選択色 */
+::selection {
+  background: var(--cappuccino);
+  color: var(--coffee-dark);
+}
+
+/* フォーカス時の見た目改善 */
+*:focus-visible {
+  outline: 2px solid var(--cinnamon);
+  outline-offset: 2px;
+}

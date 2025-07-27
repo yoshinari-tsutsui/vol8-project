@@ -13,7 +13,7 @@ export default function Navigation() {
       <Link 
         href={href} 
         className={`
-          relative px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300 ease-in-out
+          relative px-2 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-medium transition-all duration-300 ease-in-out
           transform hover:scale-105 hover:shadow-lg
           ${isActive 
             ? 'bg-gradient-to-r from-coffee-medium to-cinnamon text-white-foam shadow-lg' 
@@ -22,8 +22,8 @@ export default function Navigation() {
           active:scale-95
         `}
       >
-        <span className="flex items-center gap-2">
-          {icon && <span className="text-lg">{icon}</span>}
+        <span className="flex items-center gap-1 sm:gap-2">
+          {icon && <span className="text-base sm:text-lg">{icon}</span>}
           {children}
         </span>
         {isActive && (
@@ -39,24 +39,25 @@ export default function Navigation() {
         <div className="flex justify-between items-center h-16">
           <Link 
             href="/" 
-            className="text-xl font-bold bg-gradient-to-r from-espresso to-coffee-medium bg-clip-text text-transparent hover:scale-105 transition-transform duration-200"
+            className="text-lg sm:text-xl font-bold text-espresso hover:text-coffee-dark hover:scale-105 transition-all duration-200"
           >
-            ☕ Mappuccino
+            <span className="hidden sm:inline">☕ Mappuccino</span>
+            <span className="sm:hidden">☕</span>
           </Link>
           
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-1 sm:space-x-2">
             <NavLink href="/" icon="🏠">
-              ホーム
+              <span className="hidden sm:inline">ホーム</span>
             </NavLink>
             <NavLink href="/map" icon="🗺️">
-              探索
+              <span className="hidden sm:inline">探索</span>
             </NavLink>
             {session && (
               <NavLink 
                 href={`/profile/${(session.user as { id: string }).id}`} 
                 icon="👤"
               >
-                マイプロフィール
+                <span className="hidden sm:inline">マイプロフィール</span>
               </NavLink>
             )}
           </div>

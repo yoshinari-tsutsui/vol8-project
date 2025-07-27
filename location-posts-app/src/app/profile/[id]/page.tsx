@@ -188,19 +188,19 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto p-6">
+    <div className="max-w-4xl mx-auto p-3 sm:p-6">
       {/* 上部ヘッダー */}
-      <div className="flex justify-between items-center mb-6">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-0 mb-4 sm:mb-6">
         <Link 
           href="/"
-          className="text-coffee-medium hover:text-coffee-dark flex items-center text-sm transition-colors duration-200"
+          className="text-coffee-medium hover:text-coffee-dark flex items-center text-xs sm:text-sm transition-colors duration-200"
         >
           ← ホームに戻る
         </Link>
         {currentUserId === userId && (
           <button 
             onClick={() => signOut({ callbackUrl: '/' })}
-            className="bg-coffee-medium text-white-foam px-4 py-2 rounded-lg hover:bg-coffee-dark transition-all duration-300 text-sm shadow-md hover:shadow-lg border border-coffee-dark/20"
+            className="bg-coffee-medium text-white-foam px-3 sm:px-4 py-2 rounded-lg hover:bg-coffee-dark transition-all duration-300 text-xs sm:text-sm shadow-md hover:shadow-lg border border-coffee-dark/20"
           >
             🚪 Sign Out
           </button>
@@ -208,13 +208,13 @@ export default function ProfilePage() {
       </div>
 
       {/* プロフィールヘッダー */}
-      <div className="relative bg-gradient-to-br from-blue-50 via-white to-purple-50 rounded-2xl shadow-xl p-8 mb-6 overflow-hidden">
+      <div className="relative bg-gradient-to-br from-blue-50 via-white to-purple-50 rounded-xl sm:rounded-2xl shadow-xl p-4 sm:p-8 mb-4 sm:mb-6 overflow-hidden">
         {/* 背景装飾 */}
         <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-blue-200/30 to-purple-200/30 rounded-full -translate-y-16 translate-x-16"></div>
         <div className="absolute bottom-0 left-0 w-24 h-24 bg-gradient-to-tr from-pink-200/30 to-yellow-200/30 rounded-full translate-y-12 -translate-x-12"></div>
         
-        <div className="relative flex items-start space-x-8">
-          <div className="relative group">
+        <div className="relative flex flex-col sm:flex-row items-center sm:items-start space-y-4 sm:space-y-0 sm:space-x-8">
+          <div className="relative group flex-shrink-0">
             {user.avatarUrl ? (
               <div className="relative">
                 <Image
@@ -222,57 +222,57 @@ export default function ProfilePage() {
                   alt={user.displayName || user.username}
                   width={120}
                   height={120}
-                  className="rounded-full object-cover shadow-lg ring-4 ring-white group-hover:shadow-xl transition-all duration-300 group-hover:scale-105"
+                  className="w-20 sm:w-30 h-20 sm:h-30 rounded-full object-cover shadow-lg ring-4 ring-white group-hover:shadow-xl transition-all duration-300 group-hover:scale-105"
                 />
                 <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-transparent via-white/10 to-white/30"></div>
               </div>
             ) : (
-              <div className="w-30 h-30 bg-gradient-to-br from-blue-400 to-purple-500 rounded-full flex items-center justify-center shadow-lg ring-4 ring-white group-hover:shadow-xl transition-all duration-300 group-hover:scale-105">
-                <span className="text-3xl text-white font-bold">
+              <div className="w-20 sm:w-30 h-20 sm:h-30 bg-gradient-to-br from-blue-400 to-purple-500 rounded-full flex items-center justify-center shadow-lg ring-4 ring-white group-hover:shadow-xl transition-all duration-300 group-hover:scale-105">
+                <span className="text-xl sm:text-3xl text-white font-bold">
                   {(user.displayName || user.username || user.email || 'U').charAt(0).toUpperCase()}
                 </span>
               </div>
             )}
           </div>
 
-          <div className="flex-1">
+          <div className="flex-1 w-full">
             {isEditing ? (
-              <div className="space-y-4">
+              <div className="space-y-3 sm:space-y-4">
                 <input
                   type="text"
                   value={editForm.displayName}
                   onChange={(e) => setEditForm({...editForm, displayName: e.target.value})}
                   placeholder="表示名"
-                  className="w-full p-2 border rounded-md"
+                  className="w-full p-2 border rounded-md text-sm sm:text-base"
                 />
                 <textarea
                   value={editForm.bio}
                   onChange={(e) => setEditForm({...editForm, bio: e.target.value})}
                   placeholder="自己紹介"
                   rows={3}
-                  className="w-full p-2 border rounded-md resize-none"
+                  className="w-full p-2 border rounded-md resize-none text-sm sm:text-base"
                 />
                 <div className="space-y-2">
-                  <label className="block text-sm font-medium text-gray-700">
+                  <label className="block text-xs sm:text-sm font-medium text-gray-700">
                     アバター画像
                   </label>
                   <input
                     type="file"
                     accept="image/*"
                     onChange={handleFileSelect}
-                    className="w-full p-2 border rounded-md text-sm"
+                    className="w-full p-2 border rounded-md text-xs sm:text-sm"
                   />
                   {selectedFile && (
-                    <div className="text-sm text-green-600">
+                    <div className="text-xs sm:text-sm text-green-600">
                       選択されたファイル: {selectedFile.name}
                     </div>
                   )}
                 </div>
-                <div className="flex space-x-2">
+                <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
                   <button
                     onClick={handleEditProfile}
                     disabled={uploading}
-                    className="px-6 py-3 bg-gradient-to-r from-coffee-medium to-cinnamon text-white-foam rounded-lg hover:from-cinnamon hover:to-coffee-light disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 shadow-md hover:shadow-lg border border-coffee-dark/20"
+                    className="px-4 sm:px-6 py-2 sm:py-3 bg-gradient-to-r from-coffee-medium to-cinnamon text-white-foam rounded-lg hover:from-cinnamon hover:to-coffee-light disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 shadow-md hover:shadow-lg border border-coffee-dark/20 text-sm sm:text-base"
                   >
                     {uploading ? 'アップロード中...' : '💾 保存'}
                   </button>
@@ -286,33 +286,33 @@ export default function ProfilePage() {
                         avatarUrl: user?.avatarUrl || ''
                       })
                     }}
-                    className="px-6 py-3 bg-cappuccino text-coffee-dark rounded-lg hover:bg-coffee-light transition-all duration-300 shadow-md hover:shadow-lg border border-coffee-light hover:border-coffee-medium"
+                    className="px-4 sm:px-6 py-2 sm:py-3 bg-cappuccino text-coffee-dark rounded-lg hover:bg-coffee-light transition-all duration-300 shadow-md hover:shadow-lg border border-coffee-light hover:border-coffee-medium text-sm sm:text-base"
                   >
                     ❌ キャンセル
                   </button>
                 </div>
               </div>
             ) : (
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div className="space-y-2">
-                    <h1 className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent">
+              <div className="space-y-3 sm:space-y-4 text-center sm:text-left">
+                <div className="flex flex-col sm:flex-row items-center sm:items-start justify-between space-y-3 sm:space-y-0">
+                  <div className="space-y-1 sm:space-y-2">
+                    <h1 className="text-xl sm:text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent">
                       {user.displayName || user.username || user.email || 'ユーザー'}
                     </h1>
-                    <p className="text-gray-500 text-lg">@{user.username || user.email?.split('@')[0] || 'user'}</p>
+                    <p className="text-gray-500 text-sm sm:text-lg">@{user.username || user.email?.split('@')[0] || 'user'}</p>
                   </div>
-                  <div className="flex space-x-3">
+                  <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-3 w-full sm:w-auto">
                     {currentUserId === userId ? (
                       <>
                         <button
                           onClick={() => setIsEditing(true)}
-                          className="px-6 py-3 bg-gradient-to-r from-coffee-medium to-cinnamon text-white-foam rounded-xl hover:from-cinnamon hover:to-coffee-light transition-all duration-300 shadow-md hover:shadow-lg border border-coffee-dark/20 hover:border-coffee-dark/40"
+                          className="px-4 sm:px-6 py-2 sm:py-3 bg-gradient-to-r from-coffee-medium to-cinnamon text-white-foam rounded-lg sm:rounded-xl hover:from-cinnamon hover:to-coffee-light transition-all duration-300 shadow-md hover:shadow-lg border border-coffee-dark/20 hover:border-coffee-dark/40 text-xs sm:text-sm"
                         >
                           ✏️ プロフィール編集
                         </button>
                         <Link
                           href="/blocks"
-                          className="px-6 py-3 bg-cappuccino text-coffee-dark rounded-xl hover:bg-coffee-light transition-all duration-300 shadow-md hover:shadow-lg border border-coffee-light hover:border-coffee-medium"
+                          className="px-4 sm:px-6 py-2 sm:py-3 bg-cappuccino text-coffee-dark rounded-lg sm:rounded-xl hover:bg-coffee-light transition-all duration-300 shadow-md hover:shadow-lg border border-coffee-light hover:border-coffee-medium text-xs sm:text-sm text-center"
                         >
                           🚫 ブロックリスト
                         </Link>
@@ -338,33 +338,33 @@ export default function ProfilePage() {
                   </div>
                 </div>
                 {user.bio && (
-                  <div className="bg-white/50 backdrop-blur-sm rounded-xl p-4 border border-gray-100">
-                    <p className="text-gray-700 leading-relaxed">{user.bio}</p>
+                  <div className="bg-white/50 backdrop-blur-sm rounded-lg sm:rounded-xl p-3 sm:p-4 border border-gray-100">
+                    <p className="text-gray-700 leading-relaxed text-sm sm:text-base">{user.bio}</p>
                   </div>
                 )}
 
-                <div className="flex space-x-8">
+                <div className="flex justify-center sm:justify-start space-x-6 sm:space-x-8">
                   <div className="text-center group cursor-pointer">
-                    <div className="text-2xl font-bold text-gray-900 group-hover:text-blue-600 transition-colors">
+                    <div className="text-lg sm:text-2xl font-bold text-gray-900 group-hover:text-blue-600 transition-colors">
                       {posts.length}
                     </div>
-                    <div className="text-sm text-gray-500 group-hover:text-blue-500 transition-colors">
+                    <div className="text-xs sm:text-sm text-gray-500 group-hover:text-blue-500 transition-colors">
                       📝 投稿
                     </div>
                   </div>
                   <div className="text-center group cursor-pointer">
-                    <div className="text-2xl font-bold text-gray-900 group-hover:text-purple-600 transition-colors">
+                    <div className="text-lg sm:text-2xl font-bold text-gray-900 group-hover:text-purple-600 transition-colors">
                       {user._count?.followers || 0}
                     </div>
-                    <div className="text-sm text-gray-500 group-hover:text-purple-500 transition-colors">
+                    <div className="text-xs sm:text-sm text-gray-500 group-hover:text-purple-500 transition-colors">
                       👥 フォロワー
                     </div>
                   </div>
                   <div className="text-center group cursor-pointer">
-                    <div className="text-2xl font-bold text-gray-900 group-hover:text-green-600 transition-colors">
+                    <div className="text-lg sm:text-2xl font-bold text-gray-900 group-hover:text-green-600 transition-colors">
                       {user._count?.following || 0}
                     </div>
-                    <div className="text-sm text-gray-500 group-hover:text-green-500 transition-colors">
+                    <div className="text-xs sm:text-sm text-gray-500 group-hover:text-green-500 transition-colors">
                       💫 フォロー中
                     </div>
                   </div>
@@ -378,10 +378,10 @@ export default function ProfilePage() {
       {/* タブナビゲーション */}
       <div className="bg-white rounded-lg shadow-md">
         <div className="border-b">
-          <nav className="flex space-x-8 px-6">
+          <nav className="flex space-x-4 sm:space-x-8 px-3 sm:px-6 overflow-x-auto">
             <button
               onClick={() => setActiveTab('posts')}
-              className={`py-4 px-2 border-b-2 font-medium text-sm ${
+              className={`py-3 sm:py-4 px-2 border-b-2 font-medium text-xs sm:text-sm whitespace-nowrap ${
                 activeTab === 'posts'
                   ? 'border-blue-500 text-blue-600'
                   : 'border-transparent text-gray-500 hover:text-gray-700'
@@ -391,7 +391,7 @@ export default function ProfilePage() {
             </button>
             <button
               onClick={() => setActiveTab('followers')}
-              className={`py-4 px-2 border-b-2 font-medium text-sm ${
+              className={`py-3 sm:py-4 px-2 border-b-2 font-medium text-xs sm:text-sm whitespace-nowrap ${
                 activeTab === 'followers'
                   ? 'border-blue-500 text-blue-600'
                   : 'border-transparent text-gray-500 hover:text-gray-700'
@@ -401,7 +401,7 @@ export default function ProfilePage() {
             </button>
             <button
               onClick={() => setActiveTab('following')}
-              className={`py-4 px-2 border-b-2 font-medium text-sm ${
+              className={`py-3 sm:py-4 px-2 border-b-2 font-medium text-xs sm:text-sm whitespace-nowrap ${
                 activeTab === 'following'
                   ? 'border-blue-500 text-blue-600'
                   : 'border-transparent text-gray-500 hover:text-gray-700'
@@ -412,16 +412,16 @@ export default function ProfilePage() {
           </nav>
         </div>
 
-        <div className="p-6">
+        <div className="p-3 sm:p-6">
           {activeTab === 'posts' && (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
               {posts.length > 0 ? (
                 posts.map((post) => (
-                  <div key={post.id} className="bg-gray-50 rounded-lg p-4 relative">
+                  <div key={post.id} className="bg-gray-50 rounded-lg p-3 sm:p-4 relative">
                     {currentUserId === userId && (
                       <button
                         onClick={() => handleDeletePost(post.id)}
-                        className="absolute top-2 right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600 transition-colors"
+                        className="absolute top-2 right-2 bg-red-500 text-white rounded-full w-5 sm:w-6 h-5 sm:h-6 flex items-center justify-center text-xs hover:bg-red-600 transition-colors"
                         title="投稿を削除"
                       >
                         ×
@@ -433,14 +433,14 @@ export default function ProfilePage() {
                         alt="投稿画像"
                         width={300}
                         height={200}
-                        className="rounded-md object-cover w-full h-48 mb-2"
+                        className="rounded-md object-cover w-full h-32 sm:h-48 mb-2"
                       />
                     )}
                     {post.content && (
-                      <p className="text-gray-800 mb-2">{post.content}</p>
+                      <p className="text-gray-800 mb-2 text-sm sm:text-base">{post.content}</p>
                     )}
                     {post.location?.address && (
-                      <p className="text-sm text-gray-600 mb-2">📍 {post.location.address}</p>
+                      <p className="text-xs sm:text-sm text-gray-600 mb-2">📍 {post.location.address}</p>
                     )}
                     <p className="text-xs text-gray-500">
                       {new Date(post.createdAt).toLocaleDateString('ja-JP')}
@@ -448,7 +448,7 @@ export default function ProfilePage() {
                   </div>
                 ))
               ) : (
-                <div className="col-span-full text-center text-gray-500 py-8">
+                <div className="col-span-full text-center text-gray-500 py-6 sm:py-8">
                   投稿がありません
                 </div>
               )}
@@ -456,29 +456,29 @@ export default function ProfilePage() {
           )}
 
           {activeTab === 'followers' && (
-            <div className="space-y-4">
+            <div className="space-y-3 sm:space-y-4">
               {user.followers && user.followers.length > 0 ? (
                 user.followers.map((follow) => (
                   <div key={follow.follower.id} className="flex items-center justify-between">
-                    <div className="flex items-center space-x-3">
+                    <div className="flex items-center space-x-2 sm:space-x-3">
                       {follow.follower.avatarUrl ? (
                         <Image
                           src={follow.follower.avatarUrl}
                           alt={follow.follower.displayName || follow.follower.username}
                           width={40}
                           height={40}
-                          className="rounded-full object-cover"
+                          className="w-8 sm:w-10 h-8 sm:h-10 rounded-full object-cover"
                         />
                       ) : (
-                        <div className="w-10 h-10 bg-gray-300 rounded-full flex items-center justify-center">
-                          <span className="text-sm text-gray-500">
+                        <div className="w-8 sm:w-10 h-8 sm:h-10 bg-gray-300 rounded-full flex items-center justify-center">
+                          <span className="text-xs sm:text-sm text-gray-500">
                             {(follow.follower.displayName || follow.follower.username || 'U').charAt(0).toUpperCase()}
                           </span>
                         </div>
                       )}
                       <div>
-                        <p className="font-medium">{follow.follower.displayName || follow.follower.username}</p>
-                        <p className="text-sm text-gray-600">@{follow.follower.username}</p>
+                        <p className="font-medium text-sm sm:text-base">{follow.follower.displayName || follow.follower.username}</p>
+                        <p className="text-xs sm:text-sm text-gray-600">@{follow.follower.username}</p>
                       </div>
                     </div>
                     <FollowButton
@@ -488,7 +488,7 @@ export default function ProfilePage() {
                   </div>
                 ))
               ) : (
-                <div className="text-center text-gray-500 py-8">
+                <div className="text-center text-gray-500 py-6 sm:py-8">
                   フォロワーがいません
                 </div>
               )}
@@ -496,29 +496,29 @@ export default function ProfilePage() {
           )}
 
           {activeTab === 'following' && (
-            <div className="space-y-4">
+            <div className="space-y-3 sm:space-y-4">
               {user.following && user.following.length > 0 ? (
                 user.following.map((follow) => (
                   <div key={follow.following.id} className="flex items-center justify-between">
-                    <div className="flex items-center space-x-3">
+                    <div className="flex items-center space-x-2 sm:space-x-3">
                       {follow.following.avatarUrl ? (
                         <Image
                           src={follow.following.avatarUrl}
                           alt={follow.following.displayName || follow.following.username}
                           width={40}
                           height={40}
-                          className="rounded-full object-cover"
+                          className="w-8 sm:w-10 h-8 sm:h-10 rounded-full object-cover"
                         />
                       ) : (
-                        <div className="w-10 h-10 bg-gray-300 rounded-full flex items-center justify-center">
-                          <span className="text-sm text-gray-500">
+                        <div className="w-8 sm:w-10 h-8 sm:h-10 bg-gray-300 rounded-full flex items-center justify-center">
+                          <span className="text-xs sm:text-sm text-gray-500">
                             {(follow.following.displayName || follow.following.username || 'U').charAt(0).toUpperCase()}
                           </span>
                         </div>
                       )}
                       <div>
-                        <p className="font-medium">{follow.following.displayName || follow.following.username}</p>
-                        <p className="text-sm text-gray-600">@{follow.following.username}</p>
+                        <p className="font-medium text-sm sm:text-base">{follow.following.displayName || follow.following.username}</p>
+                        <p className="text-xs sm:text-sm text-gray-600">@{follow.following.username}</p>
                       </div>
                     </div>
                     <FollowButton
@@ -528,7 +528,7 @@ export default function ProfilePage() {
                   </div>
                 ))
               ) : (
-                <div className="text-center text-gray-500 py-8">
+                <div className="text-center text-gray-500 py-6 sm:py-8">
                   フォローしているユーザーがいません
                 </div>
               )}

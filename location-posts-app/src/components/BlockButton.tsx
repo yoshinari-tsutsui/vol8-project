@@ -79,7 +79,7 @@ export default function BlockButton({
     return (
       <button 
         disabled 
-        className="px-3 py-1 bg-gray-200 text-gray-500 rounded text-sm cursor-not-allowed"
+        className="px-2 sm:px-3 py-1 bg-gray-200 text-gray-500 rounded text-xs sm:text-sm cursor-not-allowed"
       >
         読み込み中...
       </button>
@@ -100,7 +100,7 @@ export default function BlockButton({
       <button
         onClick={handleBlockToggle}
         disabled={loading}
-        className={`px-3 py-1 rounded text-sm font-medium transition-colors ${
+        className={`px-2 sm:px-3 py-1 rounded text-xs sm:text-sm font-medium transition-colors ${
           isBlocking
             ? 'bg-gray-200 text-gray-700 hover:bg-gray-300'
             : 'bg-red-100 text-red-700 hover:bg-red-200'
@@ -117,23 +117,23 @@ export default function BlockButton({
 
       {/* ブロック確認ダイアログ */}
       {showConfirm && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 max-w-sm mx-4">
-            <h3 className="text-lg font-semibold mb-4">ユーザーをブロックしますか？</h3>
-            <p className="text-gray-600 mb-6 text-sm">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg p-4 sm:p-6 max-w-sm w-full">
+            <h3 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4">ユーザーをブロックしますか？</h3>
+            <p className="text-gray-600 mb-4 sm:mb-6 text-xs sm:text-sm">
               ブロックすると、このユーザーはあなたをフォローできなくなり、
               相互のフォロー関係も解除されます。
             </p>
-            <div className="flex space-x-3">
+            <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-3">
               <button
                 onClick={() => setShowConfirm(false)}
-                className="flex-1 px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300"
+                className="flex-1 px-3 sm:px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 text-sm"
               >
                 キャンセル
               </button>
               <button
                 onClick={handleBlockToggle}
-                className="flex-1 px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600"
+                className="flex-1 px-3 sm:px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 text-sm"
               >
                 ブロック
               </button>

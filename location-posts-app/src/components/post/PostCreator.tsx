@@ -223,13 +223,13 @@ export default function PostCreator({
   };
 
   return (
-    <div className="max-w-2xl mx-auto bg-white rounded-lg shadow-md p-6">
-      <h2 className="text-2xl font-bold text-gray-800 mb-6">新しい投稿を作成</h2>
+    <div className="max-w-2xl mx-auto bg-white rounded-lg shadow-md p-4 sm:p-6">
+      <h2 className="text-xl sm:text-2xl font-bold text-gray-800 mb-4 sm:mb-6">新しい投稿を作成</h2>
       
-      <form onSubmit={handleSubmit} className="space-y-6">
+      <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
         {/* 投稿内容 */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">
             投稿内容 *
           </label>
           <textarea
@@ -237,7 +237,7 @@ export default function PostCreator({
             onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setContent(e.target.value)}
             placeholder="今何をしていますか？"
             rows={4}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+            className="w-full px-2 sm:px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none text-sm sm:text-base"
             disabled={isCreating}
           />
           {errors.content && (
@@ -247,12 +247,12 @@ export default function PostCreator({
 
         {/* 音楽選択 */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">
             音楽 (オプション)
           </label>
           {!spotifyReady ? (
-            <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-              <p className="text-yellow-800 text-sm">
+            <div className="p-3 sm:p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+              <p className="text-yellow-800 text-xs sm:text-sm">
                 🎵 音楽機能を使用するには、Spotify APIの設定が必要です。
                 <br />
                 環境変数ファイル(.env.local)にSpotifyのClient IDを設定してください。
@@ -268,7 +268,7 @@ export default function PostCreator({
 
         {/* 画像アップロード */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">
             画像 (オプション)
           </label>
           
@@ -279,7 +279,7 @@ export default function PostCreator({
                 alt="プレビュー" 
                 width={400}
                 height={256}
-                className="max-w-full max-h-64 rounded-lg shadow-md object-cover"
+                className="max-w-full max-h-48 sm:max-h-64 rounded-lg shadow-md object-cover"
               />
               <button
                 type="button"
@@ -297,19 +297,19 @@ export default function PostCreator({
               onDrop={handleDrop}
               onClick={() => fileInputRef.current?.click()}
               className={`
-                border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors
+                border-2 border-dashed rounded-lg p-4 sm:p-8 text-center cursor-pointer transition-colors
                 ${isDragOver ? 'border-blue-500 bg-blue-50' : 'border-gray-300 hover:border-gray-400'}
                 ${isCreating ? 'pointer-events-none opacity-50' : ''}
               `}
             >
-              <div className="text-gray-400 mb-4">
-                <svg className="mx-auto h-12 w-12" fill="none" stroke="currentColor" viewBox="0 0 48 48">
+              <div className="text-gray-400 mb-2 sm:mb-4">
+                <svg className="mx-auto h-8 sm:h-12 w-8 sm:w-12" fill="none" stroke="currentColor" viewBox="0 0 48 48">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" />
                 </svg>
               </div>
-              <p className="text-lg font-medium text-gray-700">画像をアップロード</p>
-              <p className="text-sm text-gray-500 mt-1">ドラッグ&ドロップまたはクリック</p>
-              <p className="text-xs text-gray-400 mt-2">JPEG, PNG, WebP, GIF (最大5MB)</p>
+              <p className="text-base sm:text-lg font-medium text-gray-700">画像をアップロード</p>
+              <p className="text-xs sm:text-sm text-gray-500 mt-1">ドラッグ&ドロップまたはクリック</p>
+              <p className="text-xs text-gray-400 mt-1 sm:mt-2">JPEG, PNG, WebP, GIF (最大5MB)</p>
             </div>
           )}
           
@@ -329,16 +329,16 @@ export default function PostCreator({
 
         {/* 位置情報 */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">
             位置情報 *
           </label>
           
           {location ? (
-            <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
+            <div className="p-3 sm:p-4 bg-green-50 border border-green-200 rounded-lg">
               <div className="flex justify-between items-start">
                 <div>
-                  <p className="font-medium text-green-800">選択済みの位置</p>
-                  <p className="text-sm text-green-700">{location.address}</p>
+                  <p className="font-medium text-green-800 text-sm sm:text-base">選択済みの位置</p>
+                  <p className="text-xs sm:text-sm text-green-700">{location.address}</p>
                   <p className="text-xs text-green-600">
                     座標: {location.latitude.toFixed(6)}, {location.longitude.toFixed(6)}
                   </p>
@@ -346,7 +346,7 @@ export default function PostCreator({
                 <button
                   type="button"
                   onClick={() => setLocation(null)}
-                  className="text-red-600 hover:text-red-800 text-sm"
+                  className="text-red-600 hover:text-red-800 text-xs sm:text-sm"
                   disabled={isCreating}
                 >
                   削除
@@ -354,30 +354,30 @@ export default function PostCreator({
               </div>
             </div>
           ) : (
-            <div className="space-y-4">
+            <div className="space-y-3 sm:space-y-4">
               <button
                 type="button"
                 onClick={getCurrentLocation}
                 disabled={isGettingLocation || isCreating}
-                className="w-full px-4 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50"
+                className="w-full px-3 sm:px-4 py-2 sm:py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 text-sm sm:text-base"
               >
                 {isGettingLocation ? '位置情報を取得中...' : '現在位置を取得'}
               </button>
               
               <div className="flex items-center">
                 <div className="flex-1 border-t border-gray-300"></div>
-                <span className="px-3 text-gray-500 text-sm">または</span>
+                <span className="px-2 sm:px-3 text-gray-500 text-xs sm:text-sm">または</span>
                 <div className="flex-1 border-t border-gray-300"></div>
               </div>
               
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-2 gap-2 sm:gap-3">
                 <input
                   type="number"
                   step="any"
                   placeholder="緯度"
                   value={manualLocation.latitude}
                   onChange={(e: React.ChangeEvent<HTMLInputElement>) => setManualLocation((prev: { latitude: string; longitude: string }) => ({ ...prev, latitude: e.target.value }))}
-                  className="px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
+                  className="px-2 sm:px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 text-sm sm:text-base"
                   disabled={isCreating}
                 />
                 <input
@@ -386,7 +386,7 @@ export default function PostCreator({
                   placeholder="経度"
                   value={manualLocation.longitude}
                   onChange={(e: React.ChangeEvent<HTMLInputElement>) => setManualLocation((prev: { latitude: string; longitude: string }) => ({ ...prev, longitude: e.target.value }))}
-                  className="px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
+                  className="px-2 sm:px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 text-sm sm:text-base"
                   disabled={isCreating}
                 />
               </div>
@@ -395,7 +395,7 @@ export default function PostCreator({
                 type="button"
                 onClick={handleManualLocation}
                 disabled={!manualLocation.latitude || !manualLocation.longitude || isCreating}
-                className="w-full px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 disabled:opacity-50"
+                className="w-full px-3 sm:px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 disabled:opacity-50 text-sm sm:text-base"
               >
                 座標を設定
               </button>
@@ -408,11 +408,11 @@ export default function PostCreator({
         </div>
 
         {/* ボタン */}
-        <div className="flex gap-3 pt-4">
+        <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 pt-4">
           <button
             type="submit"
             disabled={isCreating}
-            className="flex-1 px-6 py-3 bg-blue-500 text-white rounded-lg font-medium hover:bg-blue-600 disabled:opacity-50"
+            className="flex-1 px-4 sm:px-6 py-2 sm:py-3 bg-blue-500 text-white rounded-lg font-medium hover:bg-blue-600 disabled:opacity-50 text-sm sm:text-base"
           >
             {isCreating ? '投稿中...' : '投稿する'}
           </button>
@@ -421,7 +421,7 @@ export default function PostCreator({
             type="button"
             onClick={handleReset}
             disabled={isCreating}
-            className="px-6 py-3 bg-gray-500 text-white rounded-lg font-medium hover:bg-gray-600 disabled:opacity-50"
+            className="px-4 sm:px-6 py-2 sm:py-3 bg-gray-500 text-white rounded-lg font-medium hover:bg-gray-600 disabled:opacity-50 text-sm sm:text-base"
           >
             リセット
           </button>
@@ -431,7 +431,7 @@ export default function PostCreator({
               type="button"
               onClick={onCancel}
               disabled={isCreating}
-              className="px-6 py-3 bg-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-400 disabled:opacity-50"
+              className="px-4 sm:px-6 py-2 sm:py-3 bg-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-400 disabled:opacity-50 text-sm sm:text-base"
             >
               キャンセル
             </button>
